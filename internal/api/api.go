@@ -48,17 +48,6 @@ func LatestResult(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, latest)
 }
 
-// Stats handles GET /api/stats?from=&to= and returns min/max/avg per metric.
-func Stats(w http.ResponseWriter, r *http.Request) {
-	from, to := parseRange(r)
-	results, err := database.ListBetween(from, to, maxLimit)
-	if err != nil {
-		http.Error(w, "failed to load results", http.StatusInternalServerError)
-		return
-	}
-	writeJSON(w, http.StatusOK, computeStats(results))
-}
-
 // ListServers handles GET /api/servers — the nearest Ookla servers to pin.
 func ListServers(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), serversTimeout)
@@ -157,80 +146,4 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(v)
-}
-
-// metricStat holds aggregate values for a single metric.
-type metricStat struct {
-	Min *float64 `json:"min"`
-	Max *float64 `json:"max"`
-	Avg *float64 `json:"avg"`
-}
-
-// statsResponse is returned by GET /api/stats.
-type statsResponse struct {
-	Count      int        `json:"count"`
-	Successful int        `json:"successful"`
-	Download   metricStat `json:"download_mbps"`
-	Upload     metricStat `json:"upload_mbps"`
-	Ping       metricStat `json:"ping_ms"`
-	Jitter     metricStat `json:"jitter_ms"`
-	PacketLoss metricStat `json:"packet_loss_pct"`
-}
-
-func computeStats(results []speedtest.Result) statsResponse {
-	resp := statsResponse{Count: len(results)}
-	dl := newAgg()
-	ul := newAgg()
-	ping := newAgg()
-	jitter := newAgg()
-	loss := newAgg()
-
-	for _, r := range results {
-		if !r.Success {
-			continue
-		}
-		resp.Successful++
-		dl.add(r.DownloadMbps)
-		ul.add(r.UploadMbps)
-		ping.add(r.PingMs)
-		jitter.add(r.JitterMs)
-		loss.add(r.PacketLossPct)
-	}
-
-	resp.Download = dl.stat()
-	resp.Upload = ul.stat()
-	resp.Ping = ping.stat()
-	resp.Jitter = jitter.stat()
-	resp.PacketLoss = loss.stat()
-	return resp
-}
-
-type agg struct {
-	min, max, sum float64
-	n             int
-}
-
-func newAgg() *agg { return &agg{} }
-
-func (a *agg) add(v *float64) {
-	if v == nil {
-		return
-	}
-	if a.n == 0 || *v < a.min {
-		a.min = *v
-	}
-	if a.n == 0 || *v > a.max {
-		a.max = *v
-	}
-	a.sum += *v
-	a.n++
-}
-
-func (a *agg) stat() metricStat {
-	if a.n == 0 {
-		return metricStat{}
-	}
-	avg := a.sum / float64(a.n)
-	min, max := a.min, a.max
-	return metricStat{Min: &min, Max: &max, Avg: &avg}
 }

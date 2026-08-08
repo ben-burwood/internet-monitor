@@ -1,4 +1,4 @@
-import { onMounted, onUnmounted, ref } from 'vue'
+import { ref } from 'vue'
 
 export interface ChartColors {
   series1: string
@@ -20,34 +20,22 @@ function read(): ChartColors {
   }
 }
 
-// useThemeColors exposes the current chart palette as a reactive value that
-// updates when the theme (data-theme) or the OS colour scheme changes.
-export function useThemeColors() {
-  const colors = ref<ChartColors>({
-    series1: '#2a78d6',
-    series2: '#eb6834',
-    grid: '#e1e0d9',
-    axis: '#898781',
-    text: '#52514e',
-  })
+// Shared across every chart: one reactive palette, refreshed when the theme
+// (data-theme on <html>) changes. The theme only switches via that attribute
+// (see style.css), so a single MutationObserver covers it.
+const colors = ref<ChartColors>({ series1: '', series2: '', grid: '', axis: '', text: '' })
+let started = false
 
-  let observer: MutationObserver | null = null
-  const media = window.matchMedia('(prefers-color-scheme: dark)')
-  const refresh = () => {
+function start() {
+  if (started || typeof document === 'undefined') return
+  started = true
+  colors.value = read()
+  new MutationObserver(() => {
     colors.value = read()
-  }
+  }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+}
 
-  onMounted(() => {
-    refresh()
-    observer = new MutationObserver(refresh)
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
-    media.addEventListener('change', refresh)
-  })
-
-  onUnmounted(() => {
-    observer?.disconnect()
-    media.removeEventListener('change', refresh)
-  })
-
+export function useThemeColors() {
+  start()
   return { colors }
 }

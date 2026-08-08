@@ -27,7 +27,6 @@ func setup(t *testing.T) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/results", ListResults)
 	mux.HandleFunc("GET /api/results/latest", LatestResult)
-	mux.HandleFunc("GET /api/stats", Stats)
 	return mux
 }
 
@@ -87,38 +86,6 @@ func TestLatestResult(t *testing.T) {
 	}
 	if latest.ID != "c" {
 		t.Errorf("latest = %s, want c", latest.ID)
-	}
-}
-
-func TestStats(t *testing.T) {
-	h := setup(t)
-	seed(t)
-
-	rec := httptest.NewRecorder()
-	h.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/api/stats", nil))
-	if rec.Code != http.StatusOK {
-		t.Fatalf("status = %d, want 200", rec.Code)
-	}
-
-	var stats statsResponse
-	if err := json.Unmarshal(rec.Body.Bytes(), &stats); err != nil {
-		t.Fatalf("decode: %v", err)
-	}
-	if stats.Count != 3 {
-		t.Errorf("Count = %d, want 3", stats.Count)
-	}
-	if stats.Successful != 2 {
-		t.Errorf("Successful = %d, want 2", stats.Successful)
-	}
-	// Only successful runs feed aggregates: download 90 and 100.
-	if stats.Download.Min == nil || *stats.Download.Min != 90 {
-		t.Errorf("download min = %v, want 90", stats.Download.Min)
-	}
-	if stats.Download.Max == nil || *stats.Download.Max != 100 {
-		t.Errorf("download max = %v, want 100", stats.Download.Max)
-	}
-	if stats.Download.Avg == nil || *stats.Download.Avg != 95 {
-		t.Errorf("download avg = %v, want 95", stats.Download.Avg)
 	}
 }
 

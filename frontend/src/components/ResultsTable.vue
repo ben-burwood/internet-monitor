@@ -68,6 +68,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { SpeedtestResult } from '@/types/result'
+import { formatDateTime as formatTime, formatMetric as fmt } from '@/utils/format'
 
 const props = defineProps<{ results: SpeedtestResult[] }>()
 
@@ -76,15 +77,8 @@ const summary = computed(() => {
   return { total: props.results.length, success, fail: props.results.length - success }
 })
 
-function fmt(v: number | null): string {
-  return v == null ? '—' : v.toFixed(1)
-}
-
+// Runtime is stored in milliseconds; show it in seconds.
 function fmtDuration(ms: number | null): string {
-  return ms == null ? '—' : (ms / 1000).toFixed(1)
-}
-
-function formatTime(iso: string): string {
-  return new Date(iso).toLocaleString()
+  return fmt(ms == null ? null : ms / 1000)
 }
 </script>

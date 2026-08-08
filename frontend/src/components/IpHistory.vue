@@ -48,6 +48,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { IPSegment } from '@/types/result'
+import { formatDate } from '@/utils/format'
 
 const props = defineProps<{ segments: IPSegment[] }>()
 
@@ -57,11 +58,4 @@ const changeLabel = computed(() => {
   return changes === 0 ? 'No changes' : `${changes} change${changes === 1 ? '' : 's'}`
 })
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  })
-}
 </script>

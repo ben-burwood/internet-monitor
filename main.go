@@ -29,7 +29,6 @@ func main() {
 	webMux := http.NewServeMux()
 	webMux.HandleFunc("GET /api/results", api.ListResults)
 	webMux.HandleFunc("GET /api/results/latest", api.LatestResult)
-	webMux.HandleFunc("GET /api/stats", api.Stats)
 	webMux.HandleFunc("GET /api/ip-history", api.IPHistory)
 	webMux.HandleFunc("GET /api/servers", api.ListServers)
 	webMux.HandleFunc("GET /api/settings", api.GetSettings)

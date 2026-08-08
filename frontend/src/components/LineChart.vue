@@ -16,6 +16,7 @@ import { Line } from 'vue-chartjs'
 import type { ChartData, ChartOptions } from 'chart.js'
 import type { SpeedtestResult } from '@/types/result'
 import { useThemeColors } from '@/composables/useThemeColors'
+import { formatMetric } from '@/utils/format'
 
 interface Metric {
   key: keyof SpeedtestResult
@@ -72,7 +73,7 @@ const chartOptions = computed<ChartOptions<'line'>>(() => ({
     },
     tooltip: {
       callbacks: {
-        label: (ctx) => `${ctx.dataset.label}: ${formatValue(ctx.parsed.y)} ${props.unit}`,
+        label: (ctx) => `${ctx.dataset.label}: ${formatMetric(ctx.parsed.y, 2)} ${props.unit}`,
       },
     },
   },
@@ -91,8 +92,4 @@ const chartOptions = computed<ChartOptions<'line'>>(() => ({
     },
   },
 }))
-
-function formatValue(v: number | null): string {
-  return v == null ? '—' : v.toFixed(2)
-}
 </script>

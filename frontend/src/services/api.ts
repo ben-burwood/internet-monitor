@@ -1,4 +1,4 @@
-import type { IPSegment, Server, ServerSelection, SpeedtestResult, Stats } from '@/types/result'
+import type { IPSegment, Server, ServerSelection, SpeedtestResult } from '@/types/result'
 
 // All requests are same-origin; in dev, Vite proxies /api to the Go backend.
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -21,14 +21,6 @@ export function getResults(from: Date, to: Date): Promise<SpeedtestResult[]> {
 
 export function getLatest(): Promise<SpeedtestResult | null> {
   return get<SpeedtestResult | null>('/api/results/latest')
-}
-
-export function getStats(from: Date, to: Date): Promise<Stats> {
-  const params = new URLSearchParams({
-    from: from.toISOString(),
-    to: to.toISOString(),
-  })
-  return get<Stats>(`/api/stats?${params}`)
 }
 
 export function getIpHistory(): Promise<IPSegment[]> {

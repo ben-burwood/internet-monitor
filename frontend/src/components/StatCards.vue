@@ -49,6 +49,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { SpeedtestResult } from '@/types/result'
+import { formatDateTime as formatTime, formatMetric as fmt } from '@/utils/format'
 
 const props = defineProps<{ latest: SpeedtestResult | null }>()
 
@@ -62,12 +63,4 @@ const tiles = computed(() => {
     { label: 'Packet loss', value: l?.packet_loss_pct ?? null, unit: '%', accent: 'text-ink' },
   ]
 })
-
-function fmt(v: number | null): string {
-  return v == null ? '—' : v.toFixed(1)
-}
-
-function formatTime(iso: string): string {
-  return new Date(iso).toLocaleString()
-}
 </script>

@@ -8,7 +8,6 @@ import {
   TimeScale,
   Tooltip,
   Legend,
-  Filler,
 } from 'chart.js'
 import 'chartjs-adapter-date-fns'
 
@@ -24,7 +23,6 @@ Chart.register(
   TimeScale,
   Tooltip,
   Legend,
-  Filler,
 )
 
 createApp(App).mount('#app')

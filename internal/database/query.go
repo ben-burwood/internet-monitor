@@ -7,15 +7,30 @@ import (
 	"time"
 )
 
+// resultColumns is the speedtest_results column list, in the order scanResult
+// expects. Shared by the read queries and Insert so they never drift.
+const resultColumns = `id, timestamp, success, error,
+	download_mbps, upload_mbps, ping_ms, jitter_ms, packet_loss_pct, duration_ms,
+	server_id, server_name, server_location, isp, external_ip, result_url`
+
+// formatStoredTime encodes a timestamp for storage (UTC, RFC3339).
+func formatStoredTime(t time.Time) string { return t.UTC().Format(time.RFC3339) }
+
+// parseStoredTime decodes a stored RFC3339 timestamp.
+func parseStoredTime(ts string) (time.Time, error) {
+	t, err := time.Parse(time.RFC3339, ts)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("parse stored timestamp %q: %w", ts, err)
+	}
+	return t, nil
+}
+
 // Insert stores a single speedtest result.
 func Insert(r speedtest.Result) error {
 	_, err := db.Exec(
-		`INSERT INTO speedtest_results (
-			id, timestamp, success, error,
-			download_mbps, upload_mbps, ping_ms, jitter_ms, packet_loss_pct, duration_ms,
-			server_id, server_name, server_location, isp, external_ip, result_url
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		r.ID, r.Timestamp.UTC().Format(time.RFC3339), boolToInt(r.Success), nullString(r.Error),
+		`INSERT INTO speedtest_results (`+resultColumns+`)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		r.ID, formatStoredTime(r.Timestamp), boolToInt(r.Success), nullString(r.Error),
 		r.DownloadMbps, r.UploadMbps, r.PingMs, r.JitterMs, r.PacketLossPct, r.DurationMs,
 		nullInt(r.ServerID), nullString(r.ServerName), nullString(r.ServerLocation),
 		nullString(r.ISP), nullString(r.ExternalIP), nullString(r.ResultURL),
@@ -27,14 +42,12 @@ func Insert(r speedtest.Result) error {
 // capped at limit rows.
 func ListBetween(from, to time.Time, limit int) ([]speedtest.Result, error) {
 	rows, err := db.Query(
-		`SELECT id, timestamp, success, error,
-			download_mbps, upload_mbps, ping_ms, jitter_ms, packet_loss_pct, duration_ms,
-			server_id, server_name, server_location, isp, external_ip, result_url
+		`SELECT `+resultColumns+`
 		 FROM speedtest_results
 		 WHERE timestamp BETWEEN ? AND ?
 		 ORDER BY timestamp DESC
 		 LIMIT ?`,
-		from.UTC().Format(time.RFC3339), to.UTC().Format(time.RFC3339), limit,
+		formatStoredTime(from), formatStoredTime(to), limit,
 	)
 	if err != nil {
 		return nil, err
@@ -55,9 +68,7 @@ func ListBetween(from, to time.Time, limit int) ([]speedtest.Result, error) {
 // Latest returns the most recent result, or (nil, nil) if there are none.
 func Latest() (*speedtest.Result, error) {
 	row := db.QueryRow(
-		`SELECT id, timestamp, success, error,
-			download_mbps, upload_mbps, ping_ms, jitter_ms, packet_loss_pct, duration_ms,
-			server_id, server_name, server_location, isp, external_ip, result_url
+		`SELECT ` + resultColumns + `
 		 FROM speedtest_results
 		 ORDER BY timestamp DESC
 		 LIMIT 1`,
@@ -77,7 +88,7 @@ func Latest() (*speedtest.Result, error) {
 func PruneOlderThan(cutoff time.Time) (int64, error) {
 	res, err := db.Exec(
 		`DELETE FROM speedtest_results WHERE timestamp < ?`,
-		cutoff.UTC().Format(time.RFC3339),
+		formatStoredTime(cutoff),
 	)
 	if err != nil {
 		return 0, err
@@ -115,9 +126,9 @@ func IPHistory() ([]IPSegment, error) {
 		if err := rows.Scan(&ip, &isp, &ts); err != nil {
 			return nil, err
 		}
-		parsed, err := time.Parse(time.RFC3339, ts)
+		parsed, err := parseStoredTime(ts)
 		if err != nil {
-			return nil, fmt.Errorf("parse stored timestamp %q: %w", ts, err)
+			return nil, err
 		}
 
 		if n := len(segments); n > 0 && segments[n-1].IP == ip {
@@ -164,9 +175,9 @@ func scanResult(s scanRow) (speedtest.Result, error) {
 		return speedtest.Result{}, err
 	}
 
-	parsed, err := time.Parse(time.RFC3339, ts)
+	parsed, err := parseStoredTime(ts)
 	if err != nil {
-		return speedtest.Result{}, fmt.Errorf("parse stored timestamp %q: %w", ts, err)
+		return speedtest.Result{}, err
 	}
 	r.Timestamp = parsed
 	r.Success = success != 0

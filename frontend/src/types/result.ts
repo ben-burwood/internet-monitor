@@ -45,18 +45,3 @@ export interface ServerSelection {
   server_location?: string
 }
 
-export interface MetricStat {
-  min: number | null
-  max: number | null
-  avg: number | null
-}
-
-export interface Stats {
-  count: number
-  successful: number
-  download_mbps: MetricStat
-  upload_mbps: MetricStat
-  ping_ms: MetricStat
-  jitter_ms: MetricStat
-  packet_loss_pct: MetricStat
-}
