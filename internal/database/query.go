@@ -12,11 +12,11 @@ func Insert(r speedtest.Result) error {
 	_, err := db.Exec(
 		`INSERT INTO speedtest_results (
 			id, timestamp, success, error,
-			download_mbps, upload_mbps, ping_ms, jitter_ms, packet_loss_pct,
+			download_mbps, upload_mbps, ping_ms, jitter_ms, packet_loss_pct, duration_ms,
 			server_id, server_name, server_location, isp, external_ip, result_url
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		r.ID, r.Timestamp.UTC().Format(time.RFC3339), boolToInt(r.Success), nullString(r.Error),
-		r.DownloadMbps, r.UploadMbps, r.PingMs, r.JitterMs, r.PacketLossPct,
+		r.DownloadMbps, r.UploadMbps, r.PingMs, r.JitterMs, r.PacketLossPct, r.DurationMs,
 		nullInt(r.ServerID), nullString(r.ServerName), nullString(r.ServerLocation),
 		nullString(r.ISP), nullString(r.ExternalIP), nullString(r.ResultURL),
 	)
@@ -28,7 +28,7 @@ func Insert(r speedtest.Result) error {
 func ListBetween(from, to time.Time, limit int) ([]speedtest.Result, error) {
 	rows, err := db.Query(
 		`SELECT id, timestamp, success, error,
-			download_mbps, upload_mbps, ping_ms, jitter_ms, packet_loss_pct,
+			download_mbps, upload_mbps, ping_ms, jitter_ms, packet_loss_pct, duration_ms,
 			server_id, server_name, server_location, isp, external_ip, result_url
 		 FROM speedtest_results
 		 WHERE timestamp BETWEEN ? AND ?
@@ -56,7 +56,7 @@ func ListBetween(from, to time.Time, limit int) ([]speedtest.Result, error) {
 func Latest() (*speedtest.Result, error) {
 	row := db.QueryRow(
 		`SELECT id, timestamp, success, error,
-			download_mbps, upload_mbps, ping_ms, jitter_ms, packet_loss_pct,
+			download_mbps, upload_mbps, ping_ms, jitter_ms, packet_loss_pct, duration_ms,
 			server_id, server_name, server_location, isp, external_ip, result_url
 		 FROM speedtest_results
 		 ORDER BY timestamp DESC
@@ -105,7 +105,7 @@ func scanResult(s scanRow) (speedtest.Result, error) {
 	)
 	if err := s.Scan(
 		&r.ID, &ts, &success, &errText,
-		&r.DownloadMbps, &r.UploadMbps, &r.PingMs, &r.JitterMs, &r.PacketLossPct,
+		&r.DownloadMbps, &r.UploadMbps, &r.PingMs, &r.JitterMs, &r.PacketLossPct, &r.DurationMs,
 		&serverID, &serverN, &serverLoc, &isp, &extIP, &resultURL,
 	); err != nil {
 		return speedtest.Result{}, err

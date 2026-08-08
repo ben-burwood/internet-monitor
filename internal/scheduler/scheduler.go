@@ -55,9 +55,12 @@ func (s *Scheduler) RunOnce(ctx context.Context) speedtest.Result {
 	defer cancel()
 
 	slog.Info("running speedtest")
+	start := time.Now()
 	res, err := speedtest.Run(runCtx)
+	durationMs := float64(time.Since(start).Milliseconds())
+
 	if err != nil {
-		slog.Error("speedtest failed", "error", err)
+		slog.Error("speedtest failed", "error", err, "duration_ms", durationMs)
 		res = speedtest.Result{
 			ID:        uuid.NewString(),
 			Timestamp: time.Now().UTC(),
@@ -71,10 +74,12 @@ func (s *Scheduler) RunOnce(ctx context.Context) speedtest.Result {
 			"ping_ms", deref(res.PingMs),
 			"jitter_ms", deref(res.JitterMs),
 			"packet_loss_pct", deref(res.PacketLossPct),
+			"duration_ms", durationMs,
 			"server", res.ServerName,
 			"isp", res.ISP,
 		)
 	}
+	res.DurationMs = &durationMs
 
 	if err := database.Insert(res); err != nil {
 		slog.Error("failed to store result", "error", err)

@@ -18,6 +18,8 @@ type Result struct {
 	JitterMs      *float64 `json:"jitter_ms"`
 	PacketLossPct *float64 `json:"packet_loss_pct"`
 
+	DurationMs *float64 `json:"duration_ms"`
+
 	ServerID       int    `json:"server_id,omitempty"`
 	ServerName     string `json:"server_name,omitempty"`
 	ServerLocation string `json:"server_location,omitempty"`

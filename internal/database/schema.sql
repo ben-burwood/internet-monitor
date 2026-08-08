@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS speedtest_results (
     ping_ms         REAL,
     jitter_ms       REAL,
     packet_loss_pct REAL,
+    duration_ms     REAL,                       -- how long the test took to run
     server_id       INTEGER,
     server_name     TEXT,
     server_location TEXT,

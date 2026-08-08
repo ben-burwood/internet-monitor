@@ -22,6 +22,7 @@
         <thead>
           <tr class="sticky top-0 bg-card text-xs uppercase tracking-wide text-muted">
             <th class="px-4 py-2 text-left font-medium">Time</th>
+            <th class="px-4 py-2 text-right font-medium">Runtime (s)</th>
             <th class="px-4 py-2 text-right font-medium">Download (Mbps)</th>
             <th class="px-4 py-2 text-right font-medium">Upload (Mbps)</th>
             <th class="px-4 py-2 text-right font-medium">Ping (ms)</th>
@@ -33,7 +34,7 @@
         </thead>
         <tbody>
           <tr v-if="results.length === 0">
-            <td colspan="8" class="px-4 py-6 text-center text-muted">No data for this range</td>
+            <td colspan="9" class="px-4 py-6 text-center text-muted">No data for this range</td>
           </tr>
           <tr
             v-for="r in results"
@@ -42,6 +43,7 @@
             :class="{ 'text-danger': !r.success }"
           >
             <td class="whitespace-nowrap px-4 py-2 text-left">{{ formatTime(r.timestamp) }}</td>
+            <td class="px-4 py-2 text-right">{{ fmtDuration(r.duration_ms) }}</td>
             <template v-if="r.success">
               <td class="px-4 py-2 text-right">{{ fmt(r.download_mbps) }}</td>
               <td class="px-4 py-2 text-right">{{ fmt(r.upload_mbps) }}</td>
@@ -76,6 +78,10 @@ const summary = computed(() => {
 
 function fmt(v: number | null): string {
   return v == null ? '—' : v.toFixed(1)
+}
+
+function fmtDuration(ms: number | null): string {
+  return ms == null ? '—' : (ms / 1000).toFixed(1)
 }
 
 function formatTime(iso: string): string {
