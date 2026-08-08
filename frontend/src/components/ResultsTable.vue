@@ -1,7 +1,21 @@
 <template>
   <div class="rounded-xl border border-border bg-card">
-    <div class="border-b border-border px-4 py-3">
+    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
       <h2 class="text-sm font-semibold text-ink">Results</h2>
+      <div class="flex items-center gap-3 text-xs">
+        <span class="text-muted">{{ summary.total }} test{{ summary.total === 1 ? '' : 's' }}</span>
+        <span class="inline-flex items-center gap-1.5 text-muted">
+          <span class="h-2 w-2 rounded-full bg-accent"></span>
+          {{ summary.success }} succeeded
+        </span>
+        <span
+          class="inline-flex items-center gap-1.5"
+          :class="summary.fail > 0 ? 'text-danger' : 'text-muted'"
+        >
+          <span class="h-2 w-2 rounded-full" :class="summary.fail > 0 ? 'bg-danger' : 'bg-muted'"></span>
+          {{ summary.fail }} failed
+        </span>
+      </div>
     </div>
     <div class="max-h-[28rem] overflow-auto">
       <table class="w-full border-collapse text-sm tabular">
@@ -50,9 +64,15 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { SpeedtestResult } from '@/types/result'
 
-defineProps<{ results: SpeedtestResult[] }>()
+const props = defineProps<{ results: SpeedtestResult[] }>()
+
+const summary = computed(() => {
+  const success = props.results.filter((r) => r.success).length
+  return { total: props.results.length, success, fail: props.results.length - success }
+})
 
 function fmt(v: number | null): string {
   return v == null ? '—' : v.toFixed(1)
