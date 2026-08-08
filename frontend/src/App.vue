@@ -13,6 +13,17 @@
             <Spinner v-if="running" />
             {{ running ? 'Testing…' : 'Run test now' }}
           </button>
+          <button
+            type="button"
+            class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted transition-colors hover:bg-card hover:text-ink"
+            aria-label="Settings"
+            @click="settingsOpen = true"
+          >
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+          </button>
           <ThemeSwitcher />
         </div>
       </header>
@@ -90,6 +101,8 @@
 
       <IpHistory :segments="ipHistory" />
     </div>
+
+    <SettingsModal :open="settingsOpen" @close="settingsOpen = false" />
   </div>
 </template>
 
@@ -100,6 +113,7 @@ import TimeRange, { type RangeKey } from '@/components/TimeRange.vue'
 import LineChart from '@/components/LineChart.vue'
 import ResultsTable from '@/components/ResultsTable.vue'
 import IpHistory from '@/components/IpHistory.vue'
+import SettingsModal from '@/components/SettingsModal.vue'
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue'
 import Spinner from '@/components/Spinner.vue'
 import { getIpHistory, getLatest, getResults, runNow } from '@/services/api'
@@ -112,6 +126,7 @@ const range = ref<RangeKey>('7d')
 const loading = ref(false)
 const running = ref(false)
 const errorMessage = ref('')
+const settingsOpen = ref(false)
 
 // Latest known public IP / ISP: prefer the most recent result, falling back to
 // the most recent run that actually captured them (a failed run has neither).

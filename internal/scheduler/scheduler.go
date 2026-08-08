@@ -54,9 +54,16 @@ func (s *Scheduler) RunOnce(ctx context.Context) speedtest.Result {
 	runCtx, cancel := context.WithTimeout(ctx, config.TestTimeout)
 	defer cancel()
 
-	slog.Info("running speedtest")
+	serverID := 0
+	if sel, err := database.GetServerSelection(); err != nil {
+		slog.Error("failed to load server selection, using automatic", "error", err)
+	} else {
+		serverID = sel.EffectiveServerID()
+	}
+
+	slog.Info("running speedtest", "server_id", serverID)
 	start := time.Now()
-	res, err := speedtest.Run(runCtx)
+	res, err := speedtest.Run(runCtx, serverID)
 	durationMs := float64(time.Since(start).Milliseconds())
 
 	if err != nil {

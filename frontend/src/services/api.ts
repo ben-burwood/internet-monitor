@@ -1,10 +1,14 @@
-import type { IPSegment, SpeedtestResult, Stats } from '@/types/result'
+import type { IPSegment, Server, ServerSelection, SpeedtestResult, Stats } from '@/types/result'
 
 // All requests are same-origin; in dev, Vite proxies /api to the Go backend.
-async function get<T>(path: string): Promise<T> {
-  const res = await fetch(path)
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(path, init)
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   return res.json() as Promise<T>
+}
+
+function get<T>(path: string): Promise<T> {
+  return request<T>(path)
 }
 
 export function getResults(from: Date, to: Date): Promise<SpeedtestResult[]> {
@@ -29,6 +33,24 @@ export function getStats(from: Date, to: Date): Promise<Stats> {
 
 export function getIpHistory(): Promise<IPSegment[]> {
   return get<IPSegment[]>('/api/ip-history')
+}
+
+// getServers lists the nearest Ookla servers. This calls the CLI, so it can
+// take a couple of seconds.
+export function getServers(): Promise<Server[]> {
+  return get<Server[]>('/api/servers')
+}
+
+export function getSettings(): Promise<ServerSelection> {
+  return get<ServerSelection>('/api/settings')
+}
+
+export function updateSettings(sel: ServerSelection): Promise<ServerSelection> {
+  return request<ServerSelection>('/api/settings', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(sel),
+  })
 }
 
 // runNow triggers an on-demand speedtest. This blocks until the test finishes,

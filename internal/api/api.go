@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -16,6 +17,9 @@ const defaultRange = 7 * 24 * time.Hour
 
 // maxLimit caps how many rows /api/results will return.
 const maxLimit = 10000
+
+// serversTimeout caps how long listing nearby servers may take.
+const serversTimeout = 30 * time.Second
 
 // ListResults handles GET /api/results?from=<iso8601>&to=<iso8601>&limit=<n>.
 func ListResults(w http.ResponseWriter, r *http.Request) {
@@ -53,6 +57,45 @@ func Stats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, computeStats(results))
+}
+
+// ListServers handles GET /api/servers — the nearest Ookla servers to pin.
+func ListServers(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), serversTimeout)
+	defer cancel()
+
+	servers, err := speedtest.ListServers(ctx)
+	if err != nil {
+		http.Error(w, "failed to list servers", http.StatusBadGateway)
+		return
+	}
+	writeJSON(w, http.StatusOK, servers)
+}
+
+// GetSettings handles GET /api/settings — the current server selection.
+func GetSettings(w http.ResponseWriter, r *http.Request) {
+	sel, err := database.GetServerSelection()
+	if err != nil {
+		http.Error(w, "failed to load settings", http.StatusInternalServerError)
+		return
+	}
+	writeJSON(w, http.StatusOK, sel)
+}
+
+// UpdateSettings handles PUT /api/settings — set (or clear) the pinned server.
+func UpdateSettings(w http.ResponseWriter, r *http.Request) {
+	var sel database.ServerSelection
+	if err := json.NewDecoder(r.Body).Decode(&sel); err != nil {
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+	sel = sel.Normalized()
+
+	if err := database.SetServerSelection(sel); err != nil {
+		http.Error(w, "failed to save settings", http.StatusInternalServerError)
+		return
+	}
+	writeJSON(w, http.StatusOK, sel)
 }
 
 // IPHistory handles GET /api/ip-history — the public IP over time, newest first.

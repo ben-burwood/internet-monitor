@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -118,6 +119,50 @@ func TestStats(t *testing.T) {
 	}
 	if stats.Download.Avg == nil || *stats.Download.Avg != 95 {
 		t.Errorf("download avg = %v, want 95", stats.Download.Avg)
+	}
+}
+
+func TestSettingsRoundTrip(t *testing.T) {
+	setup(t) // initialises a temp DB
+
+	// Default is Automatic (null server_id).
+	rec := httptest.NewRecorder()
+	GetSettings(rec, httptest.NewRequest(http.MethodGet, "/api/settings", nil))
+	var sel database.ServerSelection
+	if err := json.Unmarshal(rec.Body.Bytes(), &sel); err != nil {
+		t.Fatalf("decode default: %v", err)
+	}
+	if sel.ID != nil {
+		t.Errorf("default server_id = %v, want null", *sel.ID)
+	}
+
+	// Pin a server.
+	body := `{"server_id":28459,"server_name":"Oxford","server_location":"Oxford"}`
+	rec = httptest.NewRecorder()
+	UpdateSettings(rec, httptest.NewRequest(http.MethodPut, "/api/settings", strings.NewReader(body)))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("PUT status = %d, want 200", rec.Code)
+	}
+
+	rec = httptest.NewRecorder()
+	GetSettings(rec, httptest.NewRequest(http.MethodGet, "/api/settings", nil))
+	if err := json.Unmarshal(rec.Body.Bytes(), &sel); err != nil {
+		t.Fatalf("decode pinned: %v", err)
+	}
+	if sel.ID == nil || *sel.ID != 28459 || sel.Name != "Oxford" {
+		t.Errorf("pinned selection = %+v", sel)
+	}
+
+	// A non-positive id resets to Automatic.
+	rec = httptest.NewRecorder()
+	UpdateSettings(rec, httptest.NewRequest(http.MethodPut, "/api/settings", strings.NewReader(`{"server_id":0}`)))
+	rec = httptest.NewRecorder()
+	GetSettings(rec, httptest.NewRequest(http.MethodGet, "/api/settings", nil))
+	if err := json.Unmarshal(rec.Body.Bytes(), &sel); err != nil {
+		t.Fatalf("decode reset: %v", err)
+	}
+	if sel.ID != nil {
+		t.Errorf("reset server_id = %v, want null", *sel.ID)
 	}
 }
 

@@ -18,3 +18,9 @@ CREATE TABLE IF NOT EXISTS speedtest_results (
 );
 
 CREATE INDEX IF NOT EXISTS idx_speedtest_timestamp ON speedtest_results (timestamp);
+
+-- Key/value application settings (e.g. the pinned speedtest server).
+CREATE TABLE IF NOT EXISTS settings (
+    key   TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);

@@ -28,6 +28,23 @@ export interface IPSegment {
   count: number
 }
 
+// A nearby Ookla server the user can pin.
+export interface Server {
+  id: number
+  name: string
+  location: string
+  country?: string
+  host?: string
+  port?: number
+}
+
+// The configured speedtest server. server_id null means Automatic (closest).
+export interface ServerSelection {
+  server_id: number | null
+  server_name?: string
+  server_location?: string
+}
+
 export interface MetricStat {
   min: number | null
   max: number | null

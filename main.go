@@ -31,6 +31,9 @@ func main() {
 	webMux.HandleFunc("GET /api/results/latest", api.LatestResult)
 	webMux.HandleFunc("GET /api/stats", api.Stats)
 	webMux.HandleFunc("GET /api/ip-history", api.IPHistory)
+	webMux.HandleFunc("GET /api/servers", api.ListServers)
+	webMux.HandleFunc("GET /api/settings", api.GetSettings)
+	webMux.HandleFunc("PUT /api/settings", api.UpdateSettings)
 	webMux.Handle("POST /api/run", api.RunNow(sched))
 
 	// Serve Static Frontend
