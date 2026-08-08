@@ -55,6 +55,16 @@ func Stats(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, computeStats(results))
 }
 
+// IPHistory handles GET /api/ip-history — the public IP over time, newest first.
+func IPHistory(w http.ResponseWriter, r *http.Request) {
+	segments, err := database.IPHistory()
+	if err != nil {
+		http.Error(w, "failed to load ip history", http.StatusInternalServerError)
+		return
+	}
+	writeJSON(w, http.StatusOK, segments)
+}
+
 // RunNow returns a handler for POST /api/run that triggers an on-demand test
 // via the scheduler and returns the result.
 func RunNow(sched *scheduler.Scheduler) http.HandlerFunc {

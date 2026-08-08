@@ -1,4 +1,4 @@
-import type { SpeedtestResult, Stats } from '@/types/result'
+import type { IPSegment, SpeedtestResult, Stats } from '@/types/result'
 
 // All requests are same-origin; in dev, Vite proxies /api to the Go backend.
 async function get<T>(path: string): Promise<T> {
@@ -25,6 +25,10 @@ export function getStats(from: Date, to: Date): Promise<Stats> {
     to: to.toISOString(),
   })
   return get<Stats>(`/api/stats?${params}`)
+}
+
+export function getIpHistory(): Promise<IPSegment[]> {
+  return get<IPSegment[]>('/api/ip-history')
 }
 
 // runNow triggers an on-demand speedtest. This blocks until the test finishes,

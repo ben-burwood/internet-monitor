@@ -20,6 +20,14 @@ export interface SpeedtestResult {
   result_url?: string
 }
 
+export interface IPSegment {
+  ip: string
+  isp?: string
+  first_seen: string // ISO-8601
+  last_seen: string // ISO-8601
+  count: number
+}
+
 export interface MetricStat {
   min: number | null
   max: number | null

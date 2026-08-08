@@ -85,6 +85,59 @@ func PruneOlderThan(cutoff time.Time) (int64, error) {
 	return res.RowsAffected()
 }
 
+// IPSegment is a contiguous period during which the public IP stayed constant.
+type IPSegment struct {
+	IP        string    `json:"ip"`
+	ISP       string    `json:"isp,omitempty"`
+	FirstSeen time.Time `json:"first_seen"`
+	LastSeen  time.Time `json:"last_seen"`
+	Count     int       `json:"count"` // number of successful tests on this IP
+}
+
+// IPHistory returns the public IP over time, collapsing consecutive tests on the
+// same IP into a single segment. Segments are newest-first, so the current IP is
+// first. Failed runs and rows without an external IP are ignored.
+func IPHistory() ([]IPSegment, error) {
+	rows, err := db.Query(
+		`SELECT external_ip, COALESCE(isp, ''), timestamp
+		 FROM speedtest_results
+		 WHERE success = 1 AND external_ip IS NOT NULL AND external_ip <> ''
+		 ORDER BY timestamp ASC`,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	segments := []IPSegment{}
+	for rows.Next() {
+		var ip, isp, ts string
+		if err := rows.Scan(&ip, &isp, &ts); err != nil {
+			return nil, err
+		}
+		parsed, err := time.Parse(time.RFC3339, ts)
+		if err != nil {
+			return nil, fmt.Errorf("parse stored timestamp %q: %w", ts, err)
+		}
+
+		if n := len(segments); n > 0 && segments[n-1].IP == ip {
+			segments[n-1].LastSeen = parsed
+			segments[n-1].Count++
+			continue
+		}
+		segments = append(segments, IPSegment{IP: ip, ISP: isp, FirstSeen: parsed, LastSeen: parsed, Count: 1})
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	// Reverse to newest-first.
+	for i, j := 0, len(segments)-1; i < j; i, j = i+1, j-1 {
+		segments[i], segments[j] = segments[j], segments[i]
+	}
+	return segments, nil
+}
+
 // scanRow is satisfied by both *sql.Row and *sql.Rows.
 type scanRow interface {
 	Scan(dest ...any) error

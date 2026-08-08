@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen">
-    <div class="mx-auto flex max-w-6xl flex-col gap-4 p-4 sm:p-6">
+    <div class="mx-auto flex max-w-[85%] flex-col gap-4 p-4 sm:p-6">
       <header class="flex flex-wrap items-center justify-between gap-3">
         <span class="text-xl font-bold text-ink">📡 Internet Monitor</span>
         <div class="flex items-center gap-2">
@@ -59,7 +59,7 @@
         {{ errorMessage }}
       </div>
 
-      <div class="grid gap-4 lg:grid-cols-2">
+      <div class="grid gap-4 lg:grid-cols-3">
         <LineChart
           title="Throughput"
           unit="Mbps"
@@ -87,6 +87,8 @@
       </div>
 
       <ResultsTable :results="results" />
+
+      <IpHistory :segments="ipHistory" />
     </div>
   </div>
 </template>
@@ -97,13 +99,15 @@ import StatCards from '@/components/StatCards.vue'
 import TimeRange, { type RangeKey } from '@/components/TimeRange.vue'
 import LineChart from '@/components/LineChart.vue'
 import ResultsTable from '@/components/ResultsTable.vue'
+import IpHistory from '@/components/IpHistory.vue'
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue'
 import Spinner from '@/components/Spinner.vue'
-import { getLatest, getResults, runNow } from '@/services/api'
-import type { SpeedtestResult } from '@/types/result'
+import { getIpHistory, getLatest, getResults, runNow } from '@/services/api'
+import type { IPSegment, SpeedtestResult } from '@/types/result'
 
 const latest = ref<SpeedtestResult | null>(null)
 const results = ref<SpeedtestResult[]>([])
+const ipHistory = ref<IPSegment[]>([])
 const range = ref<RangeKey>('7d')
 const loading = ref(false)
 const running = ref(false)
@@ -143,9 +147,14 @@ async function refresh() {
   errorMessage.value = ''
   try {
     const { from, to } = rangeToWindow(range.value)
-    const [latestRes, resultsRes] = await Promise.all([getLatest(), getResults(from, to)])
+    const [latestRes, resultsRes, ipHistoryRes] = await Promise.all([
+      getLatest(),
+      getResults(from, to),
+      getIpHistory(),
+    ])
     latest.value = latestRes
     results.value = resultsRes
+    ipHistory.value = ipHistoryRes
   } catch (err) {
     errorMessage.value = `Failed to load data: ${(err as Error).message}`
   } finally {
