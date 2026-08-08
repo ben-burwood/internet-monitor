@@ -21,7 +21,7 @@ function read(): ChartColors {
 }
 
 // useThemeColors exposes the current chart palette as a reactive value that
-// updates when the DaisyUI theme (data-theme) or the OS colour scheme changes.
+// updates when the theme (data-theme) or the OS colour scheme changes.
 export function useThemeColors() {
   const colors = ref<ChartColors>({
     series1: '#2a78d6',

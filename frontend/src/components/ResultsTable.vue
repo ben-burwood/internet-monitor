@@ -1,45 +1,50 @@
 <template>
-  <div class="card bg-base-100 shadow-sm">
-    <div class="card-body">
-      <h2 class="card-title text-base">Results</h2>
-      <div class="overflow-x-auto max-h-[28rem] overflow-y-auto">
-        <table class="table table-sm table-pin-rows tabular">
-          <thead>
-            <tr>
-              <th>Time</th>
-              <th class="text-right">Download (Mbps)</th>
-              <th class="text-right">Upload (Mbps)</th>
-              <th class="text-right">Ping (ms)</th>
-              <th class="text-right">Jitter (ms)</th>
-              <th class="text-right">Packet loss (%)</th>
-              <th>Server</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-if="results.length === 0">
-              <td colspan="8" class="text-center text-base-content/50">No data for this range</td>
-            </tr>
-            <tr v-for="r in results" :key="r.id" :class="{ 'text-error': !r.success }">
-              <td class="whitespace-nowrap">{{ formatTime(r.timestamp) }}</td>
-              <template v-if="r.success">
-                <td class="text-right">{{ fmt(r.download_mbps) }}</td>
-                <td class="text-right">{{ fmt(r.upload_mbps) }}</td>
-                <td class="text-right">{{ fmt(r.ping_ms) }}</td>
-                <td class="text-right">{{ fmt(r.jitter_ms) }}</td>
-                <td class="text-right">{{ fmt(r.packet_loss_pct) }}</td>
-                <td class="whitespace-nowrap">{{ r.server_name || '—' }}</td>
-                <td>
-                  <a v-if="r.result_url" :href="r.result_url" target="_blank" rel="noopener" class="link link-primary">↗</a>
-                </td>
-              </template>
-              <template v-else>
-                <td colspan="7">Failed: {{ r.error }}</td>
-              </template>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+  <div class="rounded-xl border border-border bg-card">
+    <div class="border-b border-border px-4 py-3">
+      <h2 class="text-sm font-semibold text-ink">Results</h2>
+    </div>
+    <div class="max-h-[28rem] overflow-auto">
+      <table class="w-full border-collapse text-sm tabular">
+        <thead>
+          <tr class="sticky top-0 bg-card text-xs uppercase tracking-wide text-muted">
+            <th class="px-4 py-2 text-left font-medium">Time</th>
+            <th class="px-4 py-2 text-right font-medium">Download (Mbps)</th>
+            <th class="px-4 py-2 text-right font-medium">Upload (Mbps)</th>
+            <th class="px-4 py-2 text-right font-medium">Ping (ms)</th>
+            <th class="px-4 py-2 text-right font-medium">Jitter (ms)</th>
+            <th class="px-4 py-2 text-right font-medium">Packet loss (%)</th>
+            <th class="px-4 py-2 text-left font-medium">Server</th>
+            <th class="px-4 py-2"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-if="results.length === 0">
+            <td colspan="8" class="px-4 py-6 text-center text-muted">No data for this range</td>
+          </tr>
+          <tr
+            v-for="r in results"
+            :key="r.id"
+            class="border-t border-border"
+            :class="{ 'text-danger': !r.success }"
+          >
+            <td class="whitespace-nowrap px-4 py-2 text-left">{{ formatTime(r.timestamp) }}</td>
+            <template v-if="r.success">
+              <td class="px-4 py-2 text-right">{{ fmt(r.download_mbps) }}</td>
+              <td class="px-4 py-2 text-right">{{ fmt(r.upload_mbps) }}</td>
+              <td class="px-4 py-2 text-right">{{ fmt(r.ping_ms) }}</td>
+              <td class="px-4 py-2 text-right">{{ fmt(r.jitter_ms) }}</td>
+              <td class="px-4 py-2 text-right">{{ fmt(r.packet_loss_pct) }}</td>
+              <td class="whitespace-nowrap px-4 py-2 text-left">{{ r.server_name || '—' }}</td>
+              <td class="px-4 py-2 text-right">
+                <a v-if="r.result_url" :href="r.result_url" target="_blank" rel="noopener" class="text-accent hover:underline">↗</a>
+              </td>
+            </template>
+            <template v-else>
+              <td colspan="7" class="px-4 py-2 text-left">Failed: {{ r.error }}</td>
+            </template>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>

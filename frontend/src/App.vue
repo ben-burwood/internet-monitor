@@ -1,29 +1,38 @@
 <template>
-  <div class="min-h-screen bg-base-200">
-    <div class="navbar bg-base-100 shadow-sm">
-      <div class="flex-1 px-2">
-        <span class="text-xl font-bold">📡 Internet Monitor</span>
-      </div>
-      <div class="flex-none gap-2 px-2">
-        <button class="btn btn-primary btn-sm" :disabled="running" @click="runTest">
-          <span v-if="running" class="loading loading-spinner loading-xs"></span>
-          {{ running ? 'Testing…' : 'Run test now' }}
-        </button>
-        <ThemeSwitcher />
-      </div>
-    </div>
+  <div class="min-h-screen">
+    <div class="mx-auto flex max-w-6xl flex-col gap-4 p-4 sm:p-6">
+      <header class="flex flex-wrap items-center justify-between gap-3">
+        <span class="text-xl font-bold text-ink">📡 Internet Monitor</span>
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            class="inline-flex items-center gap-2 rounded-lg bg-accent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-strong disabled:opacity-60"
+            :disabled="running"
+            @click="runTest"
+          >
+            <Spinner v-if="running" />
+            {{ running ? 'Testing…' : 'Run test now' }}
+          </button>
+          <ThemeSwitcher />
+        </div>
+      </header>
 
-    <div class="mx-auto max-w-6xl p-4 flex flex-col gap-4">
-      <div class="card bg-base-100 shadow-sm">
-        <div class="card-body flex-row flex-wrap gap-x-12 gap-y-4 py-4">
-          <div>
-            <div class="text-xs uppercase tracking-wide text-base-content/60">Public IP</div>
-            <div class="text-2xl font-semibold tabular">{{ connection.ip || '—' }}</div>
-          </div>
-          <div>
-            <div class="text-xs uppercase tracking-wide text-base-content/60">ISP</div>
-            <div class="text-2xl font-semibold">{{ connection.isp || '—' }}</div>
-          </div>
+      <div class="flex flex-wrap items-center gap-x-8 gap-y-3 rounded-xl bg-accent/10 px-5 py-3 ring-1 ring-inset ring-accent/25">
+        <div class="flex items-center gap-2 text-accent">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+          </svg>
+          <span class="text-sm font-semibold">Connection</span>
+        </div>
+        <div class="flex items-baseline gap-2">
+          <span class="text-xs uppercase tracking-wide text-muted">Public IP</span>
+          <span class="text-base font-semibold tabular text-ink">{{ connection.ip || '—' }}</span>
+        </div>
+        <div class="hidden h-4 w-px bg-accent/25 sm:block"></div>
+        <div class="flex items-baseline gap-2">
+          <span class="text-xs uppercase tracking-wide text-muted">ISP</span>
+          <span class="text-base font-semibold text-ink">{{ connection.isp || '—' }}</span>
         </div>
       </div>
 
@@ -31,14 +40,23 @@
 
       <div class="flex items-center justify-between">
         <TimeRange v-model="range" />
-        <button class="btn btn-ghost btn-sm" :disabled="loading" @click="refresh">
-          <span v-if="loading" class="loading loading-spinner loading-xs"></span>
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted transition-colors hover:bg-card hover:text-ink disabled:opacity-60"
+          :disabled="loading"
+          @click="refresh"
+        >
+          <Spinner v-if="loading" />
           Refresh
         </button>
       </div>
 
-      <div v-if="errorMessage" role="alert" class="alert alert-error">
-        <span>{{ errorMessage }}</span>
+      <div
+        v-if="errorMessage"
+        role="alert"
+        class="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger"
+      >
+        {{ errorMessage }}
       </div>
 
       <div class="grid gap-4 lg:grid-cols-2">
@@ -80,6 +98,7 @@ import TimeRange, { type RangeKey } from '@/components/TimeRange.vue'
 import LineChart from '@/components/LineChart.vue'
 import ResultsTable from '@/components/ResultsTable.vue'
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue'
+import Spinner from '@/components/Spinner.vue'
 import { getLatest, getResults, runNow } from '@/services/api'
 import type { SpeedtestResult } from '@/types/result'
 

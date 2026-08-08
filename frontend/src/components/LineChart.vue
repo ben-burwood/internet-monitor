@@ -1,12 +1,10 @@
 <template>
-  <div class="card bg-base-100 shadow-sm">
-    <div class="card-body gap-2">
-      <h2 class="card-title text-base">{{ title }}</h2>
-      <div class="h-64">
-        <Line v-if="hasData" :data="chartData" :options="chartOptions" />
-        <div v-else class="flex h-full items-center justify-center text-sm text-base-content/50">
-          No data for this range
-        </div>
+  <div class="rounded-xl border border-border bg-card p-4">
+    <h2 class="mb-2 text-sm font-semibold text-ink">{{ title }}</h2>
+    <div class="h-64">
+      <Line v-if="hasData" :data="chartData" :options="chartOptions" />
+      <div v-else class="flex h-full items-center justify-center text-sm text-muted">
+        No data for this range
       </div>
     </div>
   </div>

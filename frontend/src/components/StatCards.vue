@@ -1,43 +1,45 @@
 <template>
   <div>
-    <div v-if="!latest" class="alert">No speedtests recorded yet — the first runs shortly after startup.</div>
-
-    <div v-else-if="!latest.success" role="alert" class="alert alert-error">
-      <span>Last test failed: {{ latest.error }}</span>
+    <div
+      v-if="!latest"
+      class="rounded-xl border border-border bg-card px-4 py-3 text-sm text-muted"
+    >
+      No speedtests recorded yet — the first runs shortly after startup.
     </div>
 
-    <div v-else class="stats stats-vertical sm:stats-horizontal w-full shadow-sm bg-base-100">
-      <div class="stat">
-        <div class="stat-title">Download</div>
-        <div class="stat-value text-primary tabular">{{ fmt(latest.download_mbps) }}</div>
-        <div class="stat-desc">Mbps</div>
-      </div>
-      <div class="stat">
-        <div class="stat-title">Upload</div>
-        <div class="stat-value text-secondary tabular">{{ fmt(latest.upload_mbps) }}</div>
-        <div class="stat-desc">Mbps</div>
-      </div>
-      <div class="stat">
-        <div class="stat-title">Ping</div>
-        <div class="stat-value tabular">{{ fmt(latest.ping_ms) }}</div>
-        <div class="stat-desc">ms</div>
-      </div>
-      <div class="stat">
-        <div class="stat-title">Jitter</div>
-        <div class="stat-value tabular">{{ fmt(latest.jitter_ms) }}</div>
-        <div class="stat-desc">ms</div>
-      </div>
-      <div class="stat">
-        <div class="stat-title">Packet loss</div>
-        <div class="stat-value tabular">{{ fmt(latest.packet_loss_pct) }}</div>
-        <div class="stat-desc">%</div>
+    <div
+      v-else-if="!latest.success"
+      role="alert"
+      class="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger"
+    >
+      Last test failed: {{ latest.error }}
+    </div>
+
+    <div v-else class="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-3 lg:grid-cols-5">
+      <div v-for="s in tiles" :key="s.label" class="bg-card px-4 py-3">
+        <div class="text-xs font-medium uppercase tracking-wide text-muted">{{ s.label }}</div>
+        <div class="mt-1 flex items-baseline gap-1">
+          <span class="text-2xl font-semibold tabular" :class="s.accent">{{ fmt(s.value) }}</span>
+          <span class="text-xs text-muted">{{ s.unit }}</span>
+        </div>
       </div>
     </div>
 
-    <div v-if="latest?.success" class="mt-2 text-sm text-base-content/70 flex flex-wrap gap-x-4 gap-y-1">
+    <div
+      v-if="latest?.success"
+      class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted"
+    >
       <span>Last run: {{ formatTime(latest.timestamp) }}</span>
-      <span v-if="latest.server_name">Server: {{ latest.server_name }}<template v-if="latest.server_location">, {{ latest.server_location }}</template></span>
-      <a v-if="latest.result_url" :href="latest.result_url" target="_blank" rel="noopener" class="link link-primary">
+      <span v-if="latest.server_name">
+        Server: {{ latest.server_name }}<template v-if="latest.server_location">, {{ latest.server_location }}</template>
+      </span>
+      <a
+        v-if="latest.result_url"
+        :href="latest.result_url"
+        target="_blank"
+        rel="noopener"
+        class="text-accent hover:underline"
+      >
         View on Speedtest.net ↗
       </a>
     </div>
@@ -45,9 +47,21 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { SpeedtestResult } from '@/types/result'
 
-defineProps<{ latest: SpeedtestResult | null }>()
+const props = defineProps<{ latest: SpeedtestResult | null }>()
+
+const tiles = computed(() => {
+  const l = props.latest
+  return [
+    { label: 'Download', value: l?.download_mbps ?? null, unit: 'Mbps', accent: 'text-accent' },
+    { label: 'Upload', value: l?.upload_mbps ?? null, unit: 'Mbps', accent: 'text-accent-2' },
+    { label: 'Ping', value: l?.ping_ms ?? null, unit: 'ms', accent: 'text-ink' },
+    { label: 'Jitter', value: l?.jitter_ms ?? null, unit: 'ms', accent: 'text-ink' },
+    { label: 'Packet loss', value: l?.packet_loss_pct ?? null, unit: '%', accent: 'text-ink' },
+  ]
+})
 
 function fmt(v: number | null): string {
   return v == null ? '—' : v.toFixed(1)

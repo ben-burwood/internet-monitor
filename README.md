@@ -26,8 +26,8 @@ Planned: public IP monitoring (see [issues]/roadmap).
 
 - **Backend:** Go, standard-library `net/http`, pure-Go SQLite
   (`modernc.org/sqlite`, no CGO). Shells out to the official Ookla `speedtest` CLI.
-- **Frontend:** Vue 3 + TypeScript + Vite + Tailwind CSS + DaisyUI, charts via
-  Chart.js / vue-chartjs.
+- **Frontend:** Vue 3 + TypeScript + Vite + Tailwind CSS (hand-built components),
+  charts via Chart.js / vue-chartjs.
 - **Deploy:** one Docker image (multi-arch amd64/arm64), `compose.yml`.
 
 ## Configuration

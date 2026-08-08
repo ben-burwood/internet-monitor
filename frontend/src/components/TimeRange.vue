@@ -1,11 +1,17 @@
 <template>
-  <div role="tablist" class="tabs tabs-box">
+  <div role="tablist" class="inline-flex rounded-lg border border-border bg-card p-0.5">
     <button
       v-for="opt in options"
       :key="opt.key"
+      type="button"
       role="tab"
-      class="tab"
-      :class="{ 'tab-active': opt.key === modelValue }"
+      :aria-selected="opt.key === modelValue"
+      class="rounded-md px-3 py-1 text-sm font-medium transition-colors"
+      :class="
+        opt.key === modelValue
+          ? 'bg-accent text-white'
+          : 'text-muted hover:text-ink'
+      "
       @click="$emit('update:modelValue', opt.key)"
     >
       {{ opt.label }}
