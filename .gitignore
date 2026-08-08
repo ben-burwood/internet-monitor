@@ -1,0 +1,11 @@
+store/*.db
+store/*.db-shm
+store/*.db-wal
+
+node_modules
+dist
+
+# Go build output
+/internet-monitor
+*.exe
+/server

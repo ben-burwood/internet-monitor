@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+@plugin "daisyui" {
+  themes: light --default, dark --prefersdark;
+}
+
+/*
+ * Chart palette (from the validated data-viz reference palette).
+ * Series 1 = blue, series 2 = orange — a pre-validated adjacent pair.
+ * Values swap with the selected theme so charts read in light and dark.
+ */
+:root {
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --chart-grid: #e1e0d9;
+  --chart-axis: #898781;
+  --chart-text: #52514e;
+}
+
+[data-theme="dark"] {
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --chart-grid: #2c2c2a;
+  --chart-axis: #898781;
+  --chart-text: #c3c2b7;
+}
+
+/* OS dark preference when the user hasn't explicitly chosen a theme. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --chart-grid: #2c2c2a;
+    --chart-axis: #898781;
+    --chart-text: #c3c2b7;
+  }
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}

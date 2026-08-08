@@ -1,0 +1,12 @@
+services:
+  internet-monitor:
+    container_name: internet-monitor
+    build: .
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+    volumes:
+      - ./store:/store
+    environment:
+      SPEEDTEST_INTERVAL: "1m"  # Go duration: 30m, 1h, 6h…
+      DATA_RETENTION: ""  # Go duration. Empty = keep forever.
