@@ -6,6 +6,8 @@ Runs periodic [Ookla Speedtests](https://www.speedtest.net/apps/cli) on a schedu
 
 No authentication, single container, configured with environment variables — built for a homelab.
 
+This is inspired by 2 great projects [MySpeed](https://github.com/gnmyt/MySpeed) and [speedtest-tracker](https://github.com/alexjustesen/speedtest-tracker) which have a similar intent, however I wanted something with much lighter idle memory use and a dashboard I defined.
+
 ## Features
 
 - Scheduled Ookla Speedtests (download, upload, ping, jitter, packet loss)
