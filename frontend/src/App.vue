@@ -1,8 +1,8 @@
 <template>
   <div class="min-h-screen">
-    <div class="mx-auto flex max-w-[85%] flex-col gap-4 p-4 sm:p-6">
+    <div class="mx-auto flex w-full max-w-[1600px] flex-col gap-4 p-3 sm:p-6">
       <header class="flex flex-wrap items-center justify-between gap-3">
-        <span class="text-xl font-bold text-ink">📡 Internet Monitor</span>
+        <span class="text-lg font-bold text-ink sm:text-xl">📡 Internet Monitor</span>
         <div class="flex items-center gap-2">
           <button
             type="button"
@@ -11,7 +11,7 @@
             @click="runTest"
           >
             <Spinner v-if="running" />
-            {{ running ? 'Testing…' : 'Run test now' }}
+            {{ running ? 'Testing…' : 'Run test' }}
           </button>
           <button
             type="button"
@@ -49,7 +49,7 @@
 
       <StatCards :latest="latest" />
 
-      <div class="flex items-center justify-between">
+      <div class="flex flex-wrap items-center justify-between gap-2">
         <TimeRange v-model="range" />
         <button
           type="button"

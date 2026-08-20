@@ -35,7 +35,7 @@ The Ookla CLI selects the closest server automatically.
 ## Running with Docker
 
 ```sh
-docker compose up -d --build
+docker compose up --build
 ```
 
 Then open <http://localhost:8080>. The SQLite database is persisted to `./store`.

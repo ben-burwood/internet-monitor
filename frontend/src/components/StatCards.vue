@@ -16,7 +16,11 @@
     </div>
 
     <div v-else class="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-3 lg:grid-cols-5">
-      <div v-for="s in tiles" :key="s.label" class="bg-card px-4 py-3">
+      <div
+        v-for="s in tiles"
+        :key="s.label"
+        class="bg-card px-4 py-3 last:odd:col-span-2 sm:last:odd:col-span-1"
+      >
         <div class="text-xs font-medium uppercase tracking-wide text-muted">{{ s.label }}</div>
         <div class="mt-1 flex items-baseline gap-1">
           <span class="text-2xl font-semibold tabular" :class="s.accent">{{ fmt(s.value) }}</span>

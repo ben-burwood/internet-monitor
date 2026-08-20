@@ -18,7 +18,7 @@
       </div>
     </div>
     <div class="max-h-[28rem] overflow-auto">
-      <table class="w-full border-collapse text-sm tabular">
+      <table class="w-full min-w-[720px] border-collapse text-sm tabular">
         <thead>
           <tr class="sticky top-0 bg-card text-xs uppercase tracking-wide text-muted">
             <th class="px-4 py-2 text-left font-medium">Time</th>
