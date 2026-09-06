@@ -1,0 +1,113 @@
+---
+import { Icon } from 'astro-icon/components';
+import { REPO_URL, RELEASES_URL } from '../consts';
+import WindowMock from './WindowMock.astro';
+---
+
+<section id="top" class="relative overflow-hidden">
+  <!-- Ambient brand glow -->
+  <div
+    aria-hidden="true"
+    class="pointer-events-none absolute inset-x-0 -top-40 -z-10 mx-auto h-[500px] max-w-4xl rounded-full bg-accent/20 blur-[120px]"
+  >
+  </div>
+
+  <div class="mx-auto max-w-6xl px-5 pb-10 pt-14 sm:pt-20">
+    <div class="mx-auto max-w-3xl text-center">
+      <a
+        href={RELEASES_URL}
+        target="_blank"
+        rel="noopener"
+        class="inline-flex flex-wrap items-center justify-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted transition hover:border-accent/60 hover:text-ink"
+      >
+        <span class="h-1.5 w-1.5 rounded-full bg-accent"></span>
+        <span id="hero-version">Latest release</span>
+        <span class="text-faint">·</span>
+        <span>Self-hosted</span>
+        <span class="text-faint">·</span>
+        <span>Docker amd64 &amp; arm64</span>
+      </a>
+
+      <h1 class="mt-6 text-balance text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl">
+        Know how your internet is
+        <span class="bg-gradient-to-r from-accent to-accent-2 bg-clip-text text-transparent">
+          really performing</span
+        >
+      </h1>
+
+      <p class="mx-auto mt-5 max-w-2xl text-pretty text-lg text-muted sm:text-xl">
+        Super lightweight, self-hosted app that runs periodic <a
+          href="https://www.speedtest.net/"
+          target="_blank"
+          rel="noopener"
+          class="text-ink underline decoration-accent/40 underline-offset-2 transition hover:decoration-accent"
+          >Ookla Speedtests</a
+        > on a schedule, stores results in <span class="text-ink">SQLite</span>, and graphs them over time. No authentication, one container, configured with environment
+        variables — <span class="text-ink">built for a homelab</span>.
+      </p>
+
+      <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+        <a
+          href="#install"
+          class="inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-accent/20 transition hover:bg-accent-strong"
+        >
+          <Icon name="simple-icons:docker" width="18" height="18" aria-hidden="true" />
+          Get started with Docker
+        </a>
+        <a
+          href={REPO_URL}
+          target="_blank"
+          rel="noopener"
+          class="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-5 py-3 text-sm font-semibold text-ink transition hover:border-accent/50 hover:text-accent"
+        >
+          <Icon name="simple-icons:github" width="18" height="18" aria-hidden="true" />
+          View on GitHub
+        </a>
+      </div>
+
+      <p class="mt-4 text-xs text-faint">Free &amp; open source · MIT licensed</p>
+    </div>
+
+    <!-- Product visual -->
+    <div id="dashboard" class="mt-14 scroll-mt-24 sm:mt-16">
+      <WindowMock />
+    </div>
+  </div>
+</section>
+
+<script>
+  import { API_LATEST_RELEASE } from '../consts';
+
+  // Session-cached so we don't refetch on in-page navigation.
+  async function cachedJson(url: string, key: string): Promise<any | null> {
+    try {
+      const cached = sessionStorage.getItem(key);
+      if (cached) return JSON.parse(cached);
+    } catch {
+      /* ignore */
+    }
+    try {
+      const res = await fetch(url, { headers: { Accept: 'application/vnd.github+json' } });
+      if (!res.ok) return null;
+      const data = await res.json();
+      try {
+        sessionStorage.setItem(key, JSON.stringify(data));
+      } catch {
+        /* storage full/blocked — ignore */
+      }
+      return data;
+    } catch {
+      return null;
+    }
+  }
+
+  // Latest release → hero chip version label (falls back to "Latest release").
+  cachedJson(API_LATEST_RELEASE, 'im_release').then((rel) => {
+    if (!rel) return;
+    const version = String(rel.tag_name || '').replace(/^v/i, '');
+    if (version) {
+      const heroV = document.getElementById('hero-version');
+      if (heroV) heroV.textContent = `v${version}`;
+    }
+  });
+</script>

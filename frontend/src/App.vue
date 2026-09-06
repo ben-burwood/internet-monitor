@@ -2,7 +2,14 @@
   <div class="min-h-screen">
     <div class="mx-auto flex w-full max-w-[1600px] flex-col gap-4 p-3 sm:p-6">
       <header class="flex flex-wrap items-center justify-between gap-3">
-        <span class="text-lg font-bold text-ink sm:text-xl">📡 Internet Monitor</span>
+        <span class="flex items-center gap-2 text-lg font-bold text-ink sm:text-xl">
+          <svg class="h-6 w-6 text-accent sm:h-7 sm:w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 2a10 10 0 1 0 10 10" />
+            <path d="M12 12 16 8" />
+            <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
+          </svg>
+          Internet Monitor
+        </span>
         <div class="flex items-center gap-2">
           <button
             type="button"

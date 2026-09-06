@@ -1,0 +1,56 @@
+---
+import { Icon } from 'astro-icon/components';
+
+const features = [
+  {
+    icon: 'heroicons:clock',
+    title: 'Scheduled speedtests',
+    body: 'Runs the official Ookla CLI on your interval — download, upload, ping, jitter and packet loss captured every time.',
+  },
+  {
+    icon: 'heroicons:chart-bar',
+    title: 'Time-series charts',
+    body: 'Throughput, latency and packet-loss graphs over 24h, 7d, 30d or all time, so trends and outages are obvious at a glance.',
+  },
+  {
+    icon: 'heroicons:globe-alt',
+    title: 'Public IP & ISP history',
+    body: 'Tracks your public IP and ISP over time and records every change as a segment — first seen, last seen, count.',
+  },
+  {
+    icon: 'heroicons:play',
+    title: 'On-demand tests',
+    body: 'Kick off a test whenever you want with a single button — no need to wait for the next scheduled run.',
+  },
+  {
+    icon: 'heroicons:server-stack',
+    title: 'Pin your server',
+    body: 'Let the CLI pick the closest Ookla server automatically, or pin a specific one from Settings for consistent results.',
+  },
+];
+---
+
+<section id="features" class="scroll-mt-20 border-t border-border/70 bg-surface-2/50">
+  <div class="mx-auto max-w-6xl px-5 py-16 sm:py-20">
+    <div class="mx-auto max-w-4xl text-center">
+      <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">Everything you need to monitor your internet</h2>
+      <p class="mt-4 text-lg text-muted">
+        Purpose-built for a homelab: simple to run, easy to read, and light on resources.
+      </p>
+    </div>
+
+    <div class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {
+        features.map((f) => (
+          <div class="rounded-xl border border-border bg-card p-5 transition hover:border-accent/40">
+            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10 text-accent ring-1 ring-accent/20">
+              <Icon name={f.icon} width="20" height="20" aria-hidden="true" />
+            </div>
+            <h3 class="mt-4 font-semibold text-ink">{f.title}</h3>
+            <p class="mt-1.5 text-sm leading-relaxed text-muted">{f.body}</p>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>

@@ -1,0 +1,46 @@
+---
+import '../styles/global.css';
+import { asset } from '../consts';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'Internet Monitor — self-hosted speedtest dashboard',
+  description = 'A small, self-hosted app that runs periodic Ookla Speedtests on a schedule, stores results in SQLite, and graphs them over time. No auth, single Docker container, built for a homelab.',
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const ogImage = asset('/favicon.svg');
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href={asset('/favicon.svg')} />
+    <meta name="generator" content={Astro.generator} />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="theme-color" content="#2a78d6" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+  </head>
+  <body class="min-h-screen antialiased">
+    <slot />
+  </body>
+</html>

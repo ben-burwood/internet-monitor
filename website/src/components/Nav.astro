@@ -1,0 +1,56 @@
+---
+import { Icon } from 'astro-icon/components';
+import { REPO_URL } from '../consts';
+
+const links = [
+  { label: 'Features', href: '#features' },
+  { label: 'Install', href: '#install' },
+];
+---
+
+<header
+  class="sticky top-0 z-50 border-b border-border/70 bg-surface/80 backdrop-blur supports-[backdrop-filter]:bg-surface/60"
+>
+  <nav class="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
+    <a href="#top" class="flex items-center gap-2.5 font-semibold tracking-tight">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="h-6 w-6 text-accent"
+        aria-hidden="true"
+      >
+        <path d="M12 2a10 10 0 1 0 10 10"></path>
+        <path d="M12 12 16 8"></path>
+        <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"></circle>
+      </svg>
+      <span>Internet Monitor</span>
+    </a>
+
+    <div class="flex items-center gap-1 sm:gap-6">
+      <div class="hidden items-center gap-6 text-sm text-muted sm:flex">
+        {
+          links.map((l) => (
+            <a href={l.href} class="transition hover:text-ink">
+              {l.label}
+            </a>
+          ))
+        }
+      </div>
+
+      <a
+        href={REPO_URL}
+        target="_blank"
+        rel="noopener"
+        class="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3.5 py-2 text-sm font-medium text-ink transition hover:border-accent/50 hover:text-accent"
+      >
+        <Icon name="simple-icons:github" width="16" height="16" aria-hidden="true" />
+        <span class="hidden xs:inline sm:inline">GitHub</span>
+      </a>
+    </div>
+  </nav>
+</header>
