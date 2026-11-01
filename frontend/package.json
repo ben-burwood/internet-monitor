@@ -19,7 +19,7 @@
     "chartjs-adapter-date-fns": "^3.0.0",
     "date-fns": "^4.4.0",
     "tailwindcss": "^4.3.0",
-    "vue": "^3.5.43",
+    "vue": "^3.5.44",
     "vue-chartjs": "^5.3.2"
   },
   "devDependencies": {
