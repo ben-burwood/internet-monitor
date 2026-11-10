@@ -1,19 +1,41 @@
 ---
 import '../styles/global.css';
-import { asset } from '../consts';
+import interWoff2 from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
+import { REPO_URL, RELEASES_URL, LICENSE_URL, asset } from '../consts';
 
 interface Props {
   title?: string;
   description?: string;
+  /** Keep the page out of search results (e.g. the 404 page). */
+  noindex?: boolean;
 }
 
 const {
-  title = 'Internet Monitor — self-hosted speedtest dashboard',
-  description = 'A small, self-hosted app that runs periodic Ookla Speedtests on a schedule, stores results in SQLite, and graphs them over time. No auth, single Docker container, built for a homelab.',
+  title = 'Internet Monitor — self-hosted internet speed test tracker',
+  description = 'Free, self-hosted internet speed test tracker. Runs scheduled Ookla Speedtests and graphs download, upload, ping and packet loss in one Docker container.',
+  noindex = false,
 } = Astro.props;
 
-const canonical = new URL(Astro.url.pathname, Astro.site).href;
-const ogImage = asset('/favicon.svg');
+const site = Astro.site ?? 'https://ben-burwood.github.io';
+// GitHub Pages redirects `/internet-monitor` → `/internet-monitor/`, so canonicalise to the trailing-slash form.
+const canonical = new URL(Astro.url.pathname.replace(/\/?$/, '/'), site).href;
+const ogImage = new URL(asset('/og.png'), site).href;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'Internet Monitor',
+  description,
+  url: canonical,
+  image: ogImage,
+  applicationCategory: 'UtilitiesApplication',
+  operatingSystem: 'Linux, Docker',
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+  license: LICENSE_URL,
+  downloadUrl: RELEASES_URL,
+  sameAs: [REPO_URL],
+  author: { '@type': 'Person', name: 'Ben Burwood' },
+};
 ---
 
 <!doctype html>
@@ -21,24 +43,35 @@ const ogImage = asset('/favicon.svg');
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="icon" type="image/svg+xml" href={asset('/favicon.svg')} />
+    <link rel="icon" type="image/png" sizes="96x96" href={asset('/favicon-96x96.png')} />
+    <link rel="apple-touch-icon" href={asset('/apple-touch-icon.png')} />
+    <link rel="preload" href={interWoff2} as="font" type="font/woff2" crossorigin />
+
     <title>{title}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={canonical} />
-    <link rel="icon" type="image/svg+xml" href={asset('/favicon.svg')} />
-    <meta name="generator" content={Astro.generator} />
+    <meta name="theme-color" content="#2a78d6" />
+    {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
 
-    <!-- Open Graph -->
+    <!-- Open Graph / social -->
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Internet Monitor" />
+    <meta property="og:locale" content="en_GB" />
+    <meta property="og:url" content={canonical} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImage} />
-    <meta name="theme-color" content="#2a78d6" />
-
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Internet Monitor — self-hosted internet speed test tracker" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    {!noindex && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
   </head>
   <body class="min-h-screen antialiased">
     <slot />
