@@ -1,6 +1,8 @@
 # Internet Monitor
 
-A small self-hosted app for monitoring your public internet connection. 
+https://ben-burwood.github.io/internet-monitor/
+
+A small **self-hosted internet speed test tracker** for monitoring your public internet connection.
 
 Runs periodic [Ookla Speedtests](https://www.speedtest.net/apps/cli) on a schedule, stores the results in SQLite, and graphs them over time in a simple web dashboard.
 

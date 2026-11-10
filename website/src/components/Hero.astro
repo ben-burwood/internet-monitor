@@ -36,14 +36,15 @@ import WindowMock from './WindowMock.astro';
       </h1>
 
       <p class="mx-auto mt-5 max-w-2xl text-pretty text-lg text-muted sm:text-xl">
-        Super lightweight, self-hosted app that runs periodic <a
+        A super lightweight, self-hosted internet speed monitor that runs periodic <a
           href="https://www.speedtest.net/"
           target="_blank"
           rel="noopener"
           class="text-ink underline decoration-accent/40 underline-offset-2 transition hover:decoration-accent"
           >Ookla Speedtests</a
-        > on a schedule, stores results in <span class="text-ink">SQLite</span>, and graphs them over time. No authentication, one container, configured with environment
-        variables — <span class="text-ink">built for a homelab</span>.
+        > on a schedule, stores results in <span class="text-ink">SQLite</span>, and graphs download, upload, ping and
+        packet loss over time. One Docker container, configured with environment variables —
+        <span class="text-ink">built for a homelab</span> or Raspberry Pi.
       </p>
 
       <div class="mt-8 flex flex-wrap items-center justify-center gap-3">

@@ -1,0 +1,60 @@
+---
+import { Icon } from 'astro-icon/components';
+
+const faqs = [
+  {
+    q: 'What does Internet Monitor measure?',
+    a: 'Every test records download and upload speed, ping, jitter and packet loss using the official Ookla Speedtest CLI, along with your public IP address and ISP so you can see when they change.',
+  },
+  {
+    q: 'How often does it run a speed test?',
+    a: 'Every hour by default — set SPEEDTEST_INTERVAL to any Go duration such as 30m or 6h. The first test runs a minute after startup, and you can trigger one on demand from the dashboard at any time.',
+  },
+  {
+    q: 'Does it run on a Raspberry Pi?',
+    a: 'Yes. The Docker image is published for linux/amd64 and linux/arm64, so it runs on a 64-bit Raspberry Pi, a NAS or any homelab server that can run Docker.',
+  },
+  {
+    q: 'How is it different from speedtest-tracker or MySpeed?',
+    a: 'It is inspired by both, but built to be much lighter: a single Go binary with an embedded SQLite database and a focused dashboard, so idle memory use stays tiny.',
+  },
+  {
+    q: 'Can I choose which Speedtest server it uses?',
+    a: 'By default the Ookla CLI picks the closest server automatically. You can pin a specific server from Settings for more consistent results over time.',
+  },
+  {
+    q: 'Does it have authentication?',
+    a: 'No. It is built for a trusted home network. If you expose it beyond your LAN, put it behind a reverse proxy that provides authentication and TLS.',
+  },
+  {
+    q: 'Is Internet Monitor free?',
+    a: 'Yes. Internet Monitor is free and open source under the MIT License.',
+  },
+];
+---
+
+<section id="faq" class="scroll-mt-20 border-t border-border/70 bg-surface-2/50">
+  <div class="mx-auto max-w-3xl px-5 py-16 sm:py-20">
+    <h2 class="text-center text-3xl font-bold tracking-tight sm:text-4xl">Frequently asked questions</h2>
+
+    <div class="mt-12 space-y-3">
+      {
+        faqs.map((f) => (
+          <details class="group rounded-xl border border-border bg-card px-5 py-4 transition open:border-accent/40">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-ink [&::-webkit-details-marker]:hidden">
+              <h3>{f.q}</h3>
+              <Icon
+                name="heroicons:chevron-down-20-solid"
+                width="20"
+                height="20"
+                aria-hidden="true"
+                class="shrink-0 text-faint transition group-open:rotate-180"
+              />
+            </summary>
+            <p class="mt-3 text-sm leading-relaxed text-muted">{f.a}</p>
+          </details>
+        ))
+      }
+    </div>
+  </div>
+</section>
