@@ -11,6 +11,7 @@ import (
 // expects. Shared by the read queries and Insert so they never drift.
 const resultColumns = `id, timestamp, success, error,
 	download_mbps, upload_mbps, ping_ms, jitter_ms, packet_loss_pct, duration_ms,
+	download_bytes, upload_bytes,
 	server_id, server_name, server_location, isp, external_ip, result_url`
 
 // formatStoredTime encodes a timestamp for storage (UTC, RFC3339).
@@ -29,9 +30,10 @@ func parseStoredTime(ts string) (time.Time, error) {
 func Insert(r speedtest.Result) error {
 	_, err := db.Exec(
 		`INSERT INTO speedtest_results (`+resultColumns+`)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		r.ID, formatStoredTime(r.Timestamp), boolToInt(r.Success), nullString(r.Error),
 		r.DownloadMbps, r.UploadMbps, r.PingMs, r.JitterMs, r.PacketLossPct, r.DurationMs,
+		r.DownloadBytes, r.UploadBytes,
 		nullInt(r.ServerID), nullString(r.ServerName), nullString(r.ServerLocation),
 		nullString(r.ISP), nullString(r.ExternalIP), nullString(r.ResultURL),
 	)
@@ -170,6 +172,7 @@ func scanResult(s scanRow) (speedtest.Result, error) {
 	if err := s.Scan(
 		&r.ID, &ts, &success, &errText,
 		&r.DownloadMbps, &r.UploadMbps, &r.PingMs, &r.JitterMs, &r.PacketLossPct, &r.DurationMs,
+		&r.DownloadBytes, &r.UploadBytes,
 		&serverID, &serverN, &serverLoc, &isp, &extIP, &resultURL,
 	); err != nil {
 		return speedtest.Result{}, err

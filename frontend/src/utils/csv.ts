@@ -13,6 +13,8 @@ const COLUMNS: (keyof SpeedtestResult)[] = [
   'jitter_ms',
   'packet_loss_pct',
   'duration_ms',
+  'download_bytes',
+  'upload_bytes',
   'server_id',
   'server_name',
   'server_location',

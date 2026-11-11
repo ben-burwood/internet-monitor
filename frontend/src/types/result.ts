@@ -11,6 +11,8 @@ export interface SpeedtestResult {
   jitter_ms: number | null
   packet_loss_pct: number | null
   duration_ms: number | null
+  download_bytes: number | null
+  upload_bytes: number | null
 
   server_id?: number
   server_name?: string

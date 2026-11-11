@@ -64,6 +64,13 @@ func TestOoklaResultToResult(t *testing.T) {
 	assertMetric(t, "JitterMs", r.JitterMs, 1.25)
 	assertMetric(t, "PacketLossPct", r.PacketLossPct, 0.5)
 
+	if r.DownloadBytes == nil || *r.DownloadBytes != 100000000 {
+		t.Errorf("DownloadBytes = %v, want 100000000", r.DownloadBytes)
+	}
+	if r.UploadBytes == nil || *r.UploadBytes != 20000000 {
+		t.Errorf("UploadBytes = %v, want 20000000", r.UploadBytes)
+	}
+
 	if r.ServerID != 1234 {
 		t.Errorf("ServerID = %d, want 1234", r.ServerID)
 	}

@@ -28,13 +28,14 @@
             <th class="px-4 py-2 text-right font-medium">Ping (ms)</th>
             <th class="px-4 py-2 text-right font-medium">Jitter (ms)</th>
             <th class="px-4 py-2 text-right font-medium">Packet loss (%)</th>
+            <th class="px-4 py-2 text-right font-medium">Data used</th>
             <th class="px-4 py-2 text-left font-medium">Server</th>
             <th class="px-4 py-2"></th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="results.length === 0">
-            <td colspan="9" class="px-4 py-6 text-center text-muted">No data for this range</td>
+            <td colspan="10" class="px-4 py-6 text-center text-muted">No data for this range</td>
           </tr>
           <tr
             v-for="r in results"
@@ -50,13 +51,14 @@
               <td class="px-4 py-2 text-right">{{ fmt(r.ping_ms) }}</td>
               <td class="px-4 py-2 text-right">{{ fmt(r.jitter_ms) }}</td>
               <td class="px-4 py-2 text-right">{{ fmt(r.packet_loss_pct) }}</td>
+              <td class="whitespace-nowrap px-4 py-2 text-right">{{ formatBytes(totalBytes(r)) }}</td>
               <td class="whitespace-nowrap px-4 py-2 text-left">{{ r.server_name || '—' }}</td>
               <td class="px-4 py-2 text-right">
                 <a v-if="r.result_url" :href="r.result_url" target="_blank" rel="noopener" class="text-accent hover:underline">↗</a>
               </td>
             </template>
             <template v-else>
-              <td colspan="7" class="px-4 py-2 text-left">Failed: {{ r.error }}</td>
+              <td colspan="8" class="px-4 py-2 text-left">Failed: {{ r.error }}</td>
             </template>
           </tr>
         </tbody>
@@ -68,7 +70,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { SpeedtestResult } from '@/types/result'
-import { formatDateTime as formatTime, formatMetric as fmt } from '@/utils/format'
+import { formatBytes, formatDateTime as formatTime, formatMetric as fmt } from '@/utils/format'
 
 const props = defineProps<{ results: SpeedtestResult[] }>()
 
@@ -80,5 +82,11 @@ const summary = computed(() => {
 // Runtime is stored in milliseconds; show it in seconds.
 function fmtDuration(ms: number | null): string {
   return fmt(ms == null ? null : ms / 1000)
+}
+
+// Total data used by a test; null for results recorded before bytes were stored.
+function totalBytes(r: SpeedtestResult): number | null {
+  if (r.download_bytes == null && r.upload_bytes == null) return null
+  return (r.download_bytes ?? 0) + (r.upload_bytes ?? 0)
 }
 </script>

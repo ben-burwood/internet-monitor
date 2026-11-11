@@ -20,6 +20,10 @@ type Result struct {
 
 	DurationMs *float64 `json:"duration_ms"`
 
+	// Data transferred during the download and upload phases.
+	DownloadBytes *int64 `json:"download_bytes"`
+	UploadBytes   *int64 `json:"upload_bytes"`
+
 	ServerID       int    `json:"server_id,omitempty"`
 	ServerName     string `json:"server_name,omitempty"`
 	ServerLocation string `json:"server_location,omitempty"`
@@ -63,6 +67,7 @@ type ooklaResult struct {
 // ooklaTransfer is the download/upload block of an Ookla payload.
 type ooklaTransfer struct {
 	Bandwidth float64 `json:"bandwidth"` // bytes per second
+	Bytes     int64   `json:"bytes"`     // total transferred
 	Progress  float64 `json:"progress"`  // 0–1, progress lines only
 }
 
@@ -132,6 +137,8 @@ func (o ooklaResult) toResult(id string) Result {
 	ping := o.Ping.Latency
 	jitter := o.Ping.Jitter
 	loss := o.PacketLoss
+	dlBytes := o.Download.Bytes
+	ulBytes := o.Upload.Bytes
 
 	return Result{
 		ID:             id,
@@ -142,6 +149,8 @@ func (o ooklaResult) toResult(id string) Result {
 		PingMs:         &ping,
 		JitterMs:       &jitter,
 		PacketLossPct:  &loss,
+		DownloadBytes:  &dlBytes,
+		UploadBytes:    &ulBytes,
 		ServerID:       o.Server.ID,
 		ServerName:     o.Server.Name,
 		ServerLocation: o.serverLocation(),

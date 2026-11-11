@@ -1,6 +1,9 @@
 package database
 
 import (
+	"database/sql"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -19,6 +22,8 @@ func setupTestDB(t *testing.T) {
 
 func f(v float64) *float64 { return &v }
 
+func i64(v int64) *int64 { return &v }
+
 func successResult(id string, ts time.Time, dl float64) speedtest.Result {
 	return speedtest.Result{
 		ID:            id,
@@ -29,6 +34,8 @@ func successResult(id string, ts time.Time, dl float64) speedtest.Result {
 		PingMs:        f(10),
 		JitterMs:      f(1),
 		PacketLossPct: f(0),
+		DownloadBytes: i64(100_000_000),
+		UploadBytes:   i64(20_000_000),
 		ServerID:      1234,
 		ServerName:    "Example",
 		ISP:           "Example ISP",
@@ -60,6 +67,49 @@ func TestInsertAndLatest(t *testing.T) {
 	}
 	if latest.ServerName != "Example" || latest.ISP != "Example ISP" {
 		t.Errorf("context fields not round-tripped: %+v", latest)
+	}
+	if latest.DownloadBytes == nil || *latest.DownloadBytes != 100_000_000 || latest.UploadBytes == nil || *latest.UploadBytes != 20_000_000 {
+		t.Errorf("bytes not round-tripped: download %v, upload %v", latest.DownloadBytes, latest.UploadBytes)
+	}
+}
+
+// TestInitAddsMissingColumns opens a database created before the byte columns
+// existed and checks Init upgrades it in place.
+func TestInitAddsMissingColumns(t *testing.T) {
+	t.Chdir(t.TempDir())
+	if err := os.MkdirAll(filepath.Dir(dbPath), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	old, err := sql.Open("sqlite", dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = old.Exec(`CREATE TABLE speedtest_results (
+		id TEXT PRIMARY KEY, timestamp DATETIME NOT NULL, success INTEGER NOT NULL DEFAULT 1, error TEXT,
+		download_mbps REAL, upload_mbps REAL, ping_ms REAL, jitter_ms REAL, packet_loss_pct REAL, duration_ms REAL,
+		server_id INTEGER, server_name TEXT, server_location TEXT, isp TEXT, external_ip TEXT, result_url TEXT)`)
+	old.Close()
+	if err != nil {
+		t.Fatalf("create old schema: %v", err)
+	}
+
+	if err := Init(); err != nil {
+		t.Fatalf("Init: %v", err)
+	}
+	t.Cleanup(func() { Close() })
+
+	if err := Insert(successResult("a", time.Now().UTC(), 90)); err != nil {
+		t.Fatalf("Insert after migration: %v", err)
+	}
+	latest, err := Latest()
+	if err != nil || latest == nil || latest.DownloadBytes == nil {
+		t.Fatalf("Latest after migration = %+v, %v", latest, err)
+	}
+
+	// A second Init must not try to re-add the columns.
+	Close()
+	if err := Init(); err != nil {
+		t.Fatalf("second Init: %v", err)
 	}
 }
 
