@@ -34,6 +34,7 @@ func main() {
 	webMux.HandleFunc("GET /api/settings", api.GetSettings)
 	webMux.HandleFunc("PUT /api/settings", api.UpdateSettings)
 	webMux.Handle("POST /api/run", api.RunNow(sched))
+	webMux.Handle("POST /api/run/stream", api.RunStream(sched))
 
 	// Serve Static Frontend
 	webMux.Handle("/", http.FileServer(http.Dir("./frontend/dist")))

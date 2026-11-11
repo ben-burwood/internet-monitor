@@ -14,7 +14,6 @@
           <button
             type="button"
             class="inline-flex items-center gap-2 rounded-lg bg-accent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-strong disabled:opacity-60"
-            :disabled="running"
             @click="runTest"
           >
             <Spinner v-if="running" />
@@ -125,6 +124,14 @@
     </div>
 
     <SettingsModal :open="settingsOpen" @close="settingsOpen = false" />
+    <LiveTestModal
+      :open="liveOpen"
+      :running="running"
+      :progress="liveProgress"
+      :result="liveResult"
+      :error="liveError"
+      @close="liveOpen = false"
+    />
   </div>
 </template>
 
@@ -136,10 +143,11 @@ import LineChart from '@/components/LineChart.vue'
 import ResultsTable from '@/components/ResultsTable.vue'
 import IpHistory from '@/components/IpHistory.vue'
 import SettingsModal from '@/components/SettingsModal.vue'
+import LiveTestModal from '@/components/LiveTestModal.vue'
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue'
 import Spinner from '@/components/Spinner.vue'
-import { getIpHistory, getLatest, getResults, runNow } from '@/services/api'
-import type { IPSegment, SpeedtestResult } from '@/types/result'
+import { getIpHistory, getLatest, getResults, runStream } from '@/services/api'
+import type { IPSegment, SpeedtestResult, TestProgress } from '@/types/result'
 import { downloadCsv, resultsToCsv } from '@/utils/csv'
 
 const latest = ref<SpeedtestResult | null>(null)
@@ -150,6 +158,13 @@ const loading = ref(false)
 const running = ref(false)
 const errorMessage = ref('')
 const settingsOpen = ref(false)
+
+// Live test modal state. The run lives here rather than in the modal so
+// closing the modal doesn't abort the test.
+const liveOpen = ref(false)
+const liveProgress = ref<TestProgress | null>(null)
+const liveResult = ref<SpeedtestResult | null>(null)
+const liveError = ref('')
 
 // Latest known public IP / ISP: prefer the most recent result, falling back to
 // the most recent run that actually captured them (a failed run has neither).
@@ -200,17 +215,29 @@ async function refresh() {
   }
 }
 
+// runTest opens the live modal and starts a streamed test; while one is
+// already running it just reopens the modal.
 async function runTest() {
+  liveOpen.value = true
+  if (running.value) return
+
   running.value = true
-  errorMessage.value = ''
+  liveProgress.value = null
+  liveResult.value = null
+  liveError.value = ''
   try {
-    await runNow()
+    liveResult.value = await runStream((p) => (liveProgress.value = p))
     await refresh()
   } catch (err) {
-    errorMessage.value = `Test failed: ${(err as Error).message}`
+    liveError.value = (err as Error).message
   } finally {
     running.value = false
   }
+
+  // The modal shows the outcome; if it was hidden mid-run, surface a failure
+  // on the page instead so it isn't missed.
+  const failure = liveError.value || (liveResult.value?.success === false ? liveResult.value.error : '')
+  if (failure && !liveOpen.value) errorMessage.value = `Test failed: ${failure}`
 }
 
 function downloadResults() {

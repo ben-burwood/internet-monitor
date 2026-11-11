@@ -26,7 +26,7 @@ type ooklaServerList struct {
 
 // ListServers returns the nearest Ookla servers, as offered by the CLI.
 func ListServers(ctx context.Context) ([]Server, error) {
-	cmd := exec.CommandContext(ctx, binary, append([]string{"--servers"}, baseArgs()...)...)
+	cmd := exec.CommandContext(ctx, binary, append([]string{"--servers", "--format=json"}, baseArgs()...)...)
 
 	out, err := cmd.Output()
 	if err != nil {

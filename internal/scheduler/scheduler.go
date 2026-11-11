@@ -34,14 +34,14 @@ func (s *Scheduler) Run(ctx context.Context) {
 	case <-ctx.Done():
 		return
 	}
-	s.RunOnce(ctx)
+	s.RunOnce(ctx, nil)
 
 	ticker := time.NewTicker(s.interval)
 	defer ticker.Stop()
 	for {
 		select {
 		case <-ticker.C:
-			s.RunOnce(ctx)
+			s.RunOnce(ctx, nil)
 		case <-ctx.Done():
 			return
 		}
@@ -50,7 +50,8 @@ func (s *Scheduler) Run(ctx context.Context) {
 
 // RunOnce executes a single speedtest, stores the outcome (success or failure),
 // and prunes old rows if retention is configured. It returns the stored result.
-func (s *Scheduler) RunOnce(ctx context.Context) speedtest.Result {
+// onProgress, when non-nil, receives live snapshots while the test runs.
+func (s *Scheduler) RunOnce(ctx context.Context, onProgress func(speedtest.Progress)) speedtest.Result {
 	runCtx, cancel := context.WithTimeout(ctx, config.TestTimeout)
 	defer cancel()
 
@@ -63,7 +64,7 @@ func (s *Scheduler) RunOnce(ctx context.Context) speedtest.Result {
 
 	slog.Info("running speedtest", "server_id", serverID)
 	start := time.Now()
-	res, err := speedtest.Run(runCtx, serverID)
+	res, err := speedtest.Run(runCtx, serverID, onProgress)
 	durationMs := float64(time.Since(start).Milliseconds())
 
 	if err != nil {

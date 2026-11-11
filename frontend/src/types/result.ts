@@ -20,6 +20,24 @@ export interface SpeedtestResult {
   result_url?: string
 }
 
+// A live snapshot of a running speedtest, streamed from /api/run/stream.
+// Metrics stay null until their phase starts, then hold the latest interim value.
+export type TestPhase = 'start' | 'ping' | 'download' | 'upload'
+
+export interface TestProgress {
+  phase: TestPhase
+  phase_progress: number // 0–1 within the current phase
+
+  download_mbps: number | null
+  upload_mbps: number | null
+  ping_ms: number | null
+  jitter_ms: number | null
+
+  server_name?: string
+  server_location?: string
+  isp?: string
+}
+
 export interface IPSegment {
   ip: string
   isp?: string

@@ -101,12 +101,46 @@ func IPHistory(w http.ResponseWriter, r *http.Request) {
 // via the scheduler and returns the result.
 func RunNow(sched *scheduler.Scheduler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		res := sched.RunOnce(r.Context())
+		res := sched.RunOnce(r.Context(), nil)
 		status := http.StatusCreated
 		if !res.Success {
 			status = http.StatusBadGateway
 		}
 		writeJSON(w, status, res)
+	}
+}
+
+// streamEvent is one line of the /api/run/stream NDJSON response: a
+// "progress" snapshot while the test runs, then a single final "result".
+type streamEvent struct {
+	Type     string              `json:"type"`
+	Progress *speedtest.Progress `json:"progress,omitempty"`
+	Result   *speedtest.Result   `json:"result,omitempty"`
+}
+
+// RunStream returns a handler for POST /api/run/stream that triggers an
+// on-demand test and streams its progress as newline-delimited JSON, ending
+// with the stored result. Disconnecting cancels the test, as with RunNow.
+func RunStream(sched *scheduler.Scheduler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		rc := http.NewResponseController(w)
+		enc := json.NewEncoder(w)
+		send := func(ev streamEvent) {
+			enc.Encode(ev)
+			rc.Flush()
+		}
+
+		w.Header().Set("Content-Type", "application/x-ndjson")
+		w.Header().Set("Cache-Control", "no-cache")
+		// Stop reverse proxies (nginx) from buffering the stream.
+		w.Header().Set("X-Accel-Buffering", "no")
+		w.WriteHeader(http.StatusOK)
+		rc.Flush()
+
+		res := sched.RunOnce(r.Context(), func(p speedtest.Progress) {
+			send(streamEvent{Type: "progress", Progress: &p})
+		})
+		send(streamEvent{Type: "result", Result: &res})
 	}
 }
 
