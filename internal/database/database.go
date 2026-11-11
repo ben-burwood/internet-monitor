@@ -2,9 +2,11 @@ package database
 
 import (
 	"database/sql"
-	_ "embed"
+	"embed"
 	"fmt"
+	"io/fs"
 	"os"
+	"path"
 	"path/filepath"
 
 	_ "modernc.org/sqlite"
@@ -12,8 +14,8 @@ import (
 
 const dbPath = "store/internet-monitor.db"
 
-//go:embed schema.sql
-var schema string
+//go:embed migrations/*.sql
+var migrations embed.FS
 
 var db *sql.DB
 
@@ -32,51 +34,60 @@ func Init() error {
 	}
 
 	db = conn
-	if _, err := db.Exec(schema); err != nil {
-		return fmt.Errorf("migrate: %w", err)
-	}
-	if err := addMissingColumns(); err != nil {
+	if err := migrate(); err != nil {
 		return fmt.Errorf("migrate: %w", err)
 	}
 	return nil
 }
 
-// addedColumns are speedtest_results columns introduced after the original
-// schema. CREATE TABLE IF NOT EXISTS leaves existing databases untouched, so
-// Init adds any of these that are missing.
-var addedColumns = []struct{ name, def string }{
-	{"download_bytes", "INTEGER"},
-	{"upload_bytes", "INTEGER"},
-}
+// migrate applies each migration newer than the database's user_version, in
+// filename order. Migration N (1-based) sets user_version to N in the same
+// transaction, so a failed migration rolls back and is retried next start.
+//
+// To change the schema, add the next numbered file to migrations/ — never edit
+// one that has shipped. Databases created before versioning report 0; 001 uses
+// IF NOT EXISTS so it is a no-op for them.
+func migrate() error {
+	var version int
+	if err := db.QueryRow(`PRAGMA user_version`).Scan(&version); err != nil {
+		return err
+	}
 
-func addMissingColumns() error {
-	rows, err := db.Query(`SELECT name FROM pragma_table_info('speedtest_results')`)
+	files, err := fs.Glob(migrations, "migrations/*.sql") // sorted by name
 	if err != nil {
 		return err
 	}
-	existing := map[string]bool{}
-	for rows.Next() {
-		var name string
-		if err := rows.Scan(&name); err != nil {
-			rows.Close()
-			return err
-		}
-		existing[name] = true
-	}
-	rows.Close()
-	if err := rows.Err(); err != nil {
-		return err
-	}
-
-	for _, c := range addedColumns {
-		if existing[c.name] {
+	for i, name := range files {
+		target := i + 1
+		if target <= version {
 			continue
 		}
-		if _, err := db.Exec(`ALTER TABLE speedtest_results ADD COLUMN ` + c.name + ` ` + c.def); err != nil {
-			return fmt.Errorf("add column %s: %w", c.name, err)
+		stmts, err := migrations.ReadFile(name)
+		if err != nil {
+			return err
+		}
+		if err := applyMigration(string(stmts), target); err != nil {
+			return fmt.Errorf("%s: %w", path.Base(name), err)
 		}
 	}
 	return nil
+}
+
+func applyMigration(stmts string, version int) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if _, err := tx.Exec(stmts); err != nil {
+		return err
+	}
+	// PRAGMA can't take a bound parameter; version is a trusted int.
+	if _, err := tx.Exec(fmt.Sprintf(`PRAGMA user_version = %d`, version)); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 func Close() error {

@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"testing"
@@ -73,9 +74,36 @@ func TestInsertAndLatest(t *testing.T) {
 	}
 }
 
-// TestInitAddsMissingColumns opens a database created before the byte columns
-// existed and checks Init upgrades it in place.
-func TestInitAddsMissingColumns(t *testing.T) {
+// latestVersion is the user_version a fully migrated database should report.
+func latestVersion(t *testing.T) int {
+	t.Helper()
+	files, err := fs.Glob(migrations, "migrations/*.sql")
+	if err != nil || len(files) == 0 {
+		t.Fatalf("no migrations found: %v", err)
+	}
+	return len(files)
+}
+
+func assertVersion(t *testing.T, want int) {
+	t.Helper()
+	var got int
+	if err := db.QueryRow(`PRAGMA user_version`).Scan(&got); err != nil {
+		t.Fatalf("read user_version: %v", err)
+	}
+	if got != want {
+		t.Errorf("user_version = %d, want %d", got, want)
+	}
+}
+
+func TestInitMigratesFreshDatabase(t *testing.T) {
+	setupTestDB(t)
+	assertVersion(t, latestVersion(t))
+}
+
+// TestInitUpgradesUnversionedDatabase opens a database created before
+// migrations were versioned (user_version 0, original schema) and checks Init
+// upgrades it in place, and that a restart applies nothing twice.
+func TestInitUpgradesUnversionedDatabase(t *testing.T) {
 	t.Chdir(t.TempDir())
 	if err := os.MkdirAll(filepath.Dir(dbPath), 0o755); err != nil {
 		t.Fatal(err)
@@ -97,6 +125,7 @@ func TestInitAddsMissingColumns(t *testing.T) {
 		t.Fatalf("Init: %v", err)
 	}
 	t.Cleanup(func() { Close() })
+	assertVersion(t, latestVersion(t))
 
 	if err := Insert(successResult("a", time.Now().UTC(), 90)); err != nil {
 		t.Fatalf("Insert after migration: %v", err)
@@ -106,11 +135,13 @@ func TestInitAddsMissingColumns(t *testing.T) {
 		t.Fatalf("Latest after migration = %+v, %v", latest, err)
 	}
 
-	// A second Init must not try to re-add the columns.
+	// A second Init must not re-run applied migrations (002 would fail on
+	// duplicate columns).
 	Close()
 	if err := Init(); err != nil {
 		t.Fatalf("second Init: %v", err)
 	}
+	assertVersion(t, latestVersion(t))
 }
 
 func TestLatestEmpty(t *testing.T) {

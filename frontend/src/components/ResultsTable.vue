@@ -3,6 +3,7 @@
     <div class="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
       <h2 class="text-sm font-semibold text-ink">Results</h2>
       <div class="flex items-center gap-3 text-xs">
+        <span v-if="summary.bytes != null" class="text-muted" title="Data used by tests in this range">{{ formatBytes(summary.bytes) }} used</span>
         <span class="text-muted">{{ summary.total }} test{{ summary.total === 1 ? '' : 's' }}</span>
         <span class="inline-flex items-center gap-1.5 text-muted">
           <span class="h-2 w-2 rounded-full bg-accent"></span>
@@ -74,9 +75,16 @@ import { formatBytes, formatDateTime as formatTime, formatMetric as fmt } from '
 
 const props = defineProps<{ results: SpeedtestResult[] }>()
 
+// bytes is null when no result in range has byte counts (e.g. all pre-date
+// them), so the header hides the total rather than showing 0 B.
 const summary = computed(() => {
   const success = props.results.filter((r) => r.success).length
-  return { total: props.results.length, success, fail: props.results.length - success }
+  let bytes: number | null = null
+  for (const r of props.results) {
+    const b = totalBytes(r)
+    if (b != null) bytes = (bytes ?? 0) + b
+  }
+  return { total: props.results.length, success, fail: props.results.length - success, bytes }
 })
 
 // Runtime is stored in milliseconds; show it in seconds.
