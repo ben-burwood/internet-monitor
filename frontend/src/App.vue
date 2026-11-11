@@ -58,15 +58,30 @@
 
       <div class="flex flex-wrap items-center justify-between gap-2">
         <TimeRange v-model="range" />
-        <button
-          type="button"
-          class="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted transition-colors hover:bg-card hover:text-ink disabled:opacity-60"
-          :disabled="loading"
-          @click="refresh"
-        >
-          <Spinner v-if="loading" />
-          Refresh
-        </button>
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            class="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted transition-colors hover:bg-card hover:text-ink disabled:opacity-60"
+            :disabled="loading || results.length === 0"
+            @click="downloadResults"
+          >
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <path d="M7 10l5 5 5-5" />
+              <path d="M12 15V3" />
+            </svg>
+            Download CSV
+          </button>
+          <button
+            type="button"
+            class="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted transition-colors hover:bg-card hover:text-ink disabled:opacity-60"
+            :disabled="loading"
+            @click="refresh"
+          >
+            <Spinner v-if="loading" />
+            Refresh
+          </button>
+        </div>
       </div>
 
       <div
@@ -125,6 +140,7 @@ import ThemeSwitcher from '@/components/ThemeSwitcher.vue'
 import Spinner from '@/components/Spinner.vue'
 import { getIpHistory, getLatest, getResults, runNow } from '@/services/api'
 import type { IPSegment, SpeedtestResult } from '@/types/result'
+import { downloadCsv, resultsToCsv } from '@/utils/csv'
 
 const latest = ref<SpeedtestResult | null>(null)
 const results = ref<SpeedtestResult[]>([])
@@ -195,6 +211,11 @@ async function runTest() {
   } finally {
     running.value = false
   }
+}
+
+function downloadResults() {
+  const stamp = new Date().toISOString().slice(0, 10)
+  downloadCsv(resultsToCsv(results.value), `internet-monitor-${range.value}-${stamp}.csv`)
 }
 
 watch(range, refresh)
